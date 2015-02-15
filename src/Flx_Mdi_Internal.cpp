@@ -7,6 +7,361 @@
 
 #include "Flx_Mdi_Internal.h"
 
+#include <FL/Fl.H>
+#include <FL/Fl_Widget.H>
+#include <FL/Fl_Box.H>
+#include <FL/fl_draw.H>
+#include <FL/Fl_Button.H>
+
+
 namespace flx {
     
+    ///////////////////////////////////////////////////////////
+    ////////////  Flx_SystemButton  ///////////////////////////////
+    ///////////////////////////////////////////////////////////
+    Flx_SystemButton::Flx_SystemButton( int x, int y, int w, int h, SystemBoxButtonType type, Fl_Color color ) 
+    : Fl_Button( x, y, w, h )
+    , _type( type )
+    {
+        box( FL_FLAT_BOX );
+        
+        this->color( color );
+        down_color( fl_darker( color ) );
+        
+        label( type == SYSTEMBUTTON_MINI ? "-" : type == SYSTEMBUTTON_MAXI ? "+" : "x" );
+        labelfont( FL_HELVETICA_BOLD );
+        labelsize( 16 );
+        clear_visible_focus();
+        
+        callback( staticOnClick, this );
+    }
+    
+    void Flx_SystemButton::staticOnClick( Fl_Widget *pW, void *pUserdata ) {
+        Flx_SystemButton *pBtn = (Flx_SystemButton*)pUserdata;
+        pBtn->onClick();
+    }
+    
+    void Flx_SystemButton::onClick( ) {
+        SystemBoxAction action;
+        action.actionButton =  _type;
+        signalSystemButtonClick.send( *this, action );
+    }
+    
+    ///////////////////////////////////////////////////////////
+    ////////////  Flx_TitleBar  ///////////////////////////////
+    ///////////////////////////////////////////////////////////
+    
+    bool Flx_TitleBar::isMouseOverSystemBox() const {
+	Fl_Widget *pW = Fl::belowmouse();
+	//if( pW == _pMinBtn || pW == _pMaxBtn || pW == _pCloseBtn ) {
+    if( pW == _pSystemBox ) {
+		return true;
+	}
+	return false;
 }
+
+    bool Flx_TitleBar::isMouseOverTitle() const {
+        Fl_Widget *pW = Fl::belowmouse();
+        if( pW == _pTitleBox ) {
+            return true;
+        }
+        return false;
+    }
+
+    
+    ///////////////////////////////////////////////////////////
+    ////////////  Flx_MdiChild  ///////////////////////////////
+    ///////////////////////////////////////////////////////////
+    
+    Flx_MdiChild::Flx_MdiChild( int x, int y, int w, int h, const char *pLbl ) 
+    : Fl_Group( x, y, w, h )
+    , _titleBarColor( fl_lighter( FL_GREEN ) )
+    {
+        box( FL_BORDER_BOX );
+        
+        createTitleBar( x+1, y+1, w-2, pLbl );
+        
+        end();
+    }
+    
+    void Flx_MdiChild::createTitleBar( int x, int y, int w, const char *pLbl ) {
+        int titleBarH = 30;
+        int sysBtnSideLen = 25;
+        int sysBoxW = 3*sysBtnSideLen+1;
+        int imgBoxSideLen = 28;
+        int titleBoxW = w - sysBoxW - imgBoxSideLen;
+        
+        _pTitleBar = new Fl_Group( x, y, w, titleBarH );
+        _pTitleBar->box( FL_FLAT_BOX );
+        _pTitleBar->color( _titleBarColor );
+        
+        //////// ImageBox
+        _pImageBox = new Fl_Box( x, y, imgBoxSideLen, imgBoxSideLen );
+ 
+        
+        /////// TitleBox
+        _pTitleBox = new Fl_Box( _pImageBox->x() + _pImageBox->w(), y, 
+                                 titleBoxW, titleBarH, pLbl );
+        _pTitleBox->align( FL_ALIGN_CENTER | FL_ALIGN_INSIDE );
+        _pTitleBox->box( FL_FLAT_BOX );
+        _pTitleBox->color( FL_YELLOW );
+        
+        /////// SystemBox
+        _pSystemBox = new Fl_Group( _pTitleBar->x() + _pTitleBar->w() - sysBoxW, y, 
+                                    sysBoxW, titleBarH );
+        
+        /////// SystemButtons
+        createSystemButtons(  _pSystemBox->x(), y+2, sysBtnSideLen );
+      
+        _pSystemBox->end();
+        
+        _pTitleBar->end();
+        _pTitleBar->resizable( _pTitleBox );
+    }
+    
+    void Flx_MdiChild::createSystemButtons( int x, int y, int sideLen ) {
+        _pMinBtn = new Flx_SystemButton( x, y, sideLen, sideLen, SYSTEMBUTTON_MINI, _titleBarColor );
+        _pMinBtn->signalSystemButtonClick
+                .connect< Flx_MdiChild, &Flx_MdiChild::onSystemButtonClick >( this );
+        
+        _pMaxBtn = new Flx_SystemButton( _pMinBtn->x() + _pMinBtn->w(), y, 
+                   sideLen, sideLen, SYSTEMBUTTON_MAXI, _titleBarColor );
+        _pMaxBtn->signalSystemButtonClick
+                .connect< Flx_MdiChild, &Flx_MdiChild::onSystemButtonClick >( this );
+ 
+        
+        _pCloseBtn = new Flx_SystemButton( _pMaxBtn->x() + _pMaxBtn->w(), y, 
+                     sideLen, sideLen, SYSTEMBUTTON_CLOSE, _titleBarColor );
+        _pCloseBtn->signalSystemButtonClick
+                .connect< Flx_MdiChild, &Flx_MdiChild::onSystemButtonClick >( this );
+    }
+    
+    void Flx_MdiChild::draw() {
+        Fl_Group::draw();
+    }
+    
+    int Flx_MdiChild::handle( int evt ) {
+	switch( evt ) {
+	case FL_MOVE:
+		_mousePos = checkResizeCursor();
+		break;
+	case FL_LEAVE:
+		fl_cursor( FL_CURSOR_DEFAULT );
+		break;
+	case FL_PUSH:
+		{
+			//bring "this" on top:
+			Fl_Group *pParent = parent();
+			if( pParent->children() > 1 ) {
+				pParent->remove( this );
+				pParent->add( this );
+				pParent->redraw();
+			}
+
+			_x = Fl::event_x();
+			_y = Fl::event_y();
+
+//			if( _pTitleBar->isMouseOverSystemBox() ) {
+//				break;
+//			}
+//
+//			if( _mousePos == POS_ANY ) {
+//                if( _pTitleBar->isMouseOverTitle() ) {
+//					_dragging = true;
+//					fl_cursor( FL_CURSOR_HAND );
+//					return 1;
+//				}
+//			} else {
+//				return 1;
+//			}
+		}
+		break;
+	case FL_RELEASE:
+		_dragging = false;
+		_mousePos = POS_ANY;
+		break;
+	case FL_DRAG:
+		if( _dragging ) {
+			drag();
+		} else if( _mousePos != POS_ANY ) {
+			resize();
+		}
+		break;
+	default:
+		break;
+	}
+	
+	return Fl_Group::handle( evt );
+}
+
+
+MousePosition Flx_MdiChild::checkResizeCursor() {
+	int x = Fl::event_x(), y = Fl::event_y();
+	int leftX = this->x();
+	int rightX = leftX + this->w();
+	int topY = this->y();
+	int botY = topY + this->h();
+	
+	unsigned int pos = POS_ANY;
+
+	if( x > ( rightX - 6 ) ) {
+		pos = POS_E;
+	} else 	if( x < ( leftX + 6 ) ) {
+		pos = POS_W;
+	}
+	if( y > ( botY - 6 ) ) {
+		pos += POS_S;
+	} else if( y < ( topY + 6 ) ) {
+		pos += POS_N;
+	}
+	
+	fl_cursor( cursors[pos] ) ;
+
+	return (MousePosition)pos;
+}
+
+void Flx_MdiChild::onSystemButtonClick( Flx_SystemButton &btn, SystemBoxAction & action ) {
+    
+}
+
+void Flx_MdiChild::drag() {
+	int x = Fl::event_x(), y = Fl::event_y();
+	int thisX = this->x(), thisY = this->y();
+
+	int dx = x - _x, dy = y - _y;
+	int newX = thisX + dx;
+	int newY = thisY + dy;
+
+	//check if dragging is possible
+	int remVis = 15; //min. remains visible
+	int parentX = parent()->x(), parentY = parent()->y();
+	if( newX < (parentX - w() + remVis ) ) return;
+	if( newX > (parentX + parent()->w() - remVis ) ) return;
+	if( newY < parentY ) return;
+	if( newY > ( parentY + parent()->h() - remVis ) ) return;
+	
+	position( newX, newY );
+	window()->redraw();
+	_x = x;
+	_y = y;
+}
+
+void Flx_MdiChild::resize() {
+	int x = Fl::event_x(), y = Fl::event_y();
+	int dx = x - _x, dy = y - _y;
+
+	switch( _mousePos ) {
+	case POS_E:
+	case POS_W:
+		resizeHorz( dx );
+		break;
+	case POS_N:
+	case POS_S:
+		resizeVert( dy );
+		break;
+	default:
+		resizeHorz( dx );
+		resizeVert( dy );
+		break;
+	}
+	
+	window()->redraw();
+
+	_x = Fl::event_x();
+	_y = Fl::event_y();
+}
+
+void Flx_MdiChild::resizeHorz( int dx ) {
+	int thisX = this->x();
+	if( canResizeHorz( dx ) ) {
+		if( ( _mousePos & POS_E )  == POS_E ) {
+			Fl_Group::resize( thisX, this->y(), this->w() + dx, this->h() );
+		} else {
+			Fl_Group::resize( this->x() + dx, this->y(), this->w() - dx, this->h() );
+		}
+	}
+}
+
+void Flx_MdiChild::resizeVert( int dy ) {
+	int thisY = this->y();
+	if( canResizeVert( dy ) ) {
+		if( ( _mousePos & POS_N ) == POS_N ) {	
+			Fl_Group::resize( this->x(), thisY + dy, this->w(), this->h() - dy );
+		} else {
+			Fl_Group::resize( this->x(), thisY, this->w(), this->h() + dy );
+		}
+	}
+}
+
+bool Flx_MdiChild::canResizeVert( int dy ) const {
+	if( dy > 0 ) {
+		//resizing downwards
+		if( ( _mousePos & POS_N ) == POS_N ) { //grip on title bar; child getting smaller
+			if( this->y() > parent()->y()/*keep title bar visible*/ &&
+				this->h() > ( _pTitleBar->h() + 25 /*approx. scrollbar height*/ ) ) 
+			{
+				return true;
+			}
+		} else {
+			//grip on lower border; child getting higher
+			return true;
+		}
+	} else {  //dy < 0; resizing upwards
+		if( ( _mousePos & POS_N ) == POS_N ) { //grip on title bar; child getting higher
+			if( this->y() > parent()->y() ) {
+				return true;
+			}
+		} else {
+			//grip on lower border; child getting smaller
+			if( this->h() > ( _pTitleBar->h() + 25 /*approx. scrollbar height*/ ) ) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+bool Flx_MdiChild::canResizeHorz( int dx ) const {
+	if( dx > 0 ) { //resizing to the right
+		if( ( _mousePos & POS_W ) == POS_W ) { //grip on left border; child getting smaller
+			if( this->w() > 25 /* scrollbar width */ ) {
+				return true;
+			}
+		} else {
+			//grip on right border; child growing
+			return true;
+		}
+	} else { //resizing to the left
+		if( ( _mousePos & POS_W ) == POS_W ) { //grip on left border; child getting smaller		
+			return true;		
+		} else {
+			//grip on right border; child growing
+			if( this->w() > 25 /* scrollbar width */ ) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+
+///////////////////////////////////////////////////////////
+////////////  Flx_MdiContainer  ///////////////////////////////
+///////////////////////////////////////////////////////////
+
+Flx_MdiContainer::Flx_MdiContainer( int x, int y, int w, int h ) 
+: Fl_Group( x, y, w, h )
+{
+    
+}
+
+void Flx_MdiContainer::draw() {
+    Fl_Group::draw();
+}
+
+int Flx_MdiContainer::handle( int evt ) {
+    int rc = Fl_Group::handle( evt );
+    return rc;
+}
+
+} //ns flx

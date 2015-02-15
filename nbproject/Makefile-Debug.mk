@@ -72,12 +72,12 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/flx_mdi: ${OBJECTFILES}
 ${OBJECTDIR}/_ext/2034070592/Flx_Mdi_Internal.o: /home/max/cpp/fltk/Flx_Mdi/src/Flx_Mdi_Internal.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/2034070592
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -I../../My_1_5 -I../../fltk-1.3.2 -I../Flx_1 -I. -I/usr/include/mysql -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/2034070592/Flx_Mdi_Internal.o /home/max/cpp/fltk/Flx_Mdi/src/Flx_Mdi_Internal.cpp
+	$(COMPILE.cc) -g -I. -I/home/max/cpp/fltk/Flx_Mdi/src -I../../My_1_5 -I../../fltk-1.3.2 -I../Flx_1 -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/2034070592/Flx_Mdi_Internal.o /home/max/cpp/fltk/Flx_Mdi/src/Flx_Mdi_Internal.cpp
 
 ${OBJECTDIR}/_ext/2034070592/main.o: /home/max/cpp/fltk/Flx_Mdi/src/main.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/2034070592
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -I../../My_1_5 -I../../fltk-1.3.2 -I../Flx_1 -I. -I/usr/include/mysql -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/2034070592/main.o /home/max/cpp/fltk/Flx_Mdi/src/main.cpp
+	$(COMPILE.cc) -g -I. -I/home/max/cpp/fltk/Flx_Mdi/src -I../../My_1_5 -I../../fltk-1.3.2 -I../Flx_1 -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/2034070592/main.o /home/max/cpp/fltk/Flx_Mdi/src/main.cpp
 
 # Subprojects
 .build-subprojects:
@@ -94,7 +94,7 @@ ${TESTDIR}/TestFiles/f1: ${TESTDIR}/_ext/784297060/newsimpletest.o ${OBJECTFILES
 ${TESTDIR}/_ext/784297060/newsimpletest.o: /home/max/cpp/fltk/PuRRechner/PuRRechner/src/tests/newsimpletest.cpp 
 	${MKDIR} -p ${TESTDIR}/_ext/784297060
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -I../../My_1_5 -I../../fltk-1.3.2 -I../Flx_1 -I. -I/usr/include/mysql -I. -std=c++11 -MMD -MP -MF "$@.d" -o ${TESTDIR}/_ext/784297060/newsimpletest.o /home/max/cpp/fltk/PuRRechner/PuRRechner/src/tests/newsimpletest.cpp
+	$(COMPILE.cc) -g -I. -I/home/max/cpp/fltk/Flx_Mdi/src -I../../My_1_5 -I../../fltk-1.3.2 -I../Flx_1 -I. -std=c++11 -MMD -MP -MF "$@.d" -o ${TESTDIR}/_ext/784297060/newsimpletest.o /home/max/cpp/fltk/PuRRechner/PuRRechner/src/tests/newsimpletest.cpp
 
 
 ${OBJECTDIR}/_ext/2034070592/Flx_Mdi_Internal_nomain.o: ${OBJECTDIR}/_ext/2034070592/Flx_Mdi_Internal.o /home/max/cpp/fltk/Flx_Mdi/src/Flx_Mdi_Internal.cpp 
@@ -105,7 +105,7 @@ ${OBJECTDIR}/_ext/2034070592/Flx_Mdi_Internal_nomain.o: ${OBJECTDIR}/_ext/203407
 	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
 	then  \
 	    ${RM} "$@.d";\
-	    $(COMPILE.cc) -g -I../../My_1_5 -I../../fltk-1.3.2 -I../Flx_1 -I. -I/usr/include/mysql -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/2034070592/Flx_Mdi_Internal_nomain.o /home/max/cpp/fltk/Flx_Mdi/src/Flx_Mdi_Internal.cpp;\
+	    $(COMPILE.cc) -g -I. -I/home/max/cpp/fltk/Flx_Mdi/src -I../../My_1_5 -I../../fltk-1.3.2 -I../Flx_1 -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/2034070592/Flx_Mdi_Internal_nomain.o /home/max/cpp/fltk/Flx_Mdi/src/Flx_Mdi_Internal.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/_ext/2034070592/Flx_Mdi_Internal.o ${OBJECTDIR}/_ext/2034070592/Flx_Mdi_Internal_nomain.o;\
 	fi
@@ -118,7 +118,7 @@ ${OBJECTDIR}/_ext/2034070592/main_nomain.o: ${OBJECTDIR}/_ext/2034070592/main.o 
 	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
 	then  \
 	    ${RM} "$@.d";\
-	    $(COMPILE.cc) -g -I../../My_1_5 -I../../fltk-1.3.2 -I../Flx_1 -I. -I/usr/include/mysql -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/2034070592/main_nomain.o /home/max/cpp/fltk/Flx_Mdi/src/main.cpp;\
+	    $(COMPILE.cc) -g -I. -I/home/max/cpp/fltk/Flx_Mdi/src -I../../My_1_5 -I../../fltk-1.3.2 -I../Flx_1 -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/2034070592/main_nomain.o /home/max/cpp/fltk/Flx_Mdi/src/main.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/_ext/2034070592/main.o ${OBJECTDIR}/_ext/2034070592/main_nomain.o;\
 	fi

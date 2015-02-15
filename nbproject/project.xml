@@ -13,7 +13,6 @@
                 <make-dep-project>/home/max/cpp/fltk/Flx_1</make-dep-project>
             </make-dep-projects>
             <sourceRootList>
-                <sourceRootElem>PuRRechner/src</sourceRootElem>
                 <sourceRootElem>/home/max/cpp/fltk/Flx_Mdi/src</sourceRootElem>
             </sourceRootList>
             <confList>

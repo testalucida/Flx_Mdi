@@ -9,9 +9,14 @@
 #define	FLX_MDI_INTERNAL_H
 
 #include <FL/Fl_Group.H>
-#include <flx/Flx_Button.h>
+#include <FL/Fl_Button.H>
 
 #include <my/Signal.hpp>
+#include <my/CharBuffer.h>
+
+//forward declarations
+class Fl_Box;
+class Fl_Button;
 
 namespace flx {
     
@@ -46,26 +51,29 @@ namespace flx {
     };
     
     enum SystemBoxButtonType {
-        SYSTEMBOXBUTTON_CLOSE,
-        SYSTEMBOXBUTTON_MINI,
-        SYSTEMBOXBUTTON_MAXI
+        SYSTEMBUTTON_CLOSE,
+        SYSTEMBUTTON_MINI,
+        SYSTEMBUTTON_MAXI
     };
     
     struct SystemBoxAction {
+    public:
         SystemBoxButtonType actionButton;
     };
     
     
-    //Forward declarations
-    class Fl_Box;
-    struct ActionParm;
-    
     /**
      * SystemButton 
      */
-    class Flx_SystemButton : public Flx_Button {
+    class Flx_SystemButton : public Fl_Button {
     public:
-        Flx_SystemButton( int x, int y, int l, SystemBoxButtonType btnType );
+        my::Signal< Flx_SystemButton, SystemBoxAction > signalSystemButtonClick;
+    public:
+        Flx_SystemButton( int x, int y, int w, int h, SystemBoxButtonType type, Fl_Color color );
+        static void staticOnClick( Fl_Widget *pW, void *pUserdata );
+        void onClick();
+    private:
+        SystemBoxButtonType _type;
     };
     
     
@@ -74,11 +82,7 @@ namespace flx {
      * Enthält 3 Flx_SystemButtons.
      */
     class Flx_SystemBox : public Fl_Group {
-    public:
-        /**
-         * Signal, das nach dem Drücken eines Flx_SystemButtons gesendet wird.
-         */
-        my::Signal< Flx_SystemBox, SystemBoxAction > signalSystemButton;
+        my::Signal< Flx_SystemBox, SystemBoxAction > signalSystemButtonClicked;
     public:
         Flx_SystemBox( int x, int y, int w, int h );
         void draw();
@@ -90,7 +94,9 @@ namespace flx {
          * @param btn: der gedrückte Button
          * @param 
          */
-        void onControlButton( Flx_Button &btn, ActionParm & );
+        //void onControlButton( Flx_Button &btn, ActionParm & );
+    private:
+        Flx_SystemButton *_pMinBtn, *_pMaxBtn, *_pCloseBtn;
     };
     
     
@@ -100,21 +106,33 @@ namespace flx {
      */
     class Flx_TitleBar : public Fl_Group {
     public:
-        my::Signal< Flx_TitleBar, SystemBoxAction > signalSystemButton;
+        my::Signal< Flx_TitleBar, SystemBoxAction > signalSystemButtonClicked;
     public:
         Flx_TitleBar( int x, int y, int w, int h, const char *pLbl = 0 );
+        bool isMouseOverSystemBox() const;
+        bool isMouseOverTitle() const;
         void draw();
         int handle( int evt );
-    
     private:
+        /**
+         * Callback-Methode, die gerufen wird, wenn ein System-Button
+         * gedrückt wird
+         * @param systemBox
+         * @param action
+         */
+        void onSystemBoxAction( Flx_SystemBox &systemBox, SystemBoxAction &action );
+    private:
+        my::CharBuffer _title;
         Fl_Box *_pImageBox;
+        Fl_Box *_pTitleBox;
+        Flx_SystemBox *_pSystemBox;
     };
     
     
     /**
      * Flx_MdiChild repräsentiert ein Dokument im Flx_MdiContainer.
      * Es besteht aus der Client-Area, in der beliebige Widgets angeordnet
-     * sein können, einer Toolbar und der Flx_TitleBar.
+     * sein können und der Flx_TitleBar.
      */
     class Flx_MdiChild : public Fl_Group {
     public:
@@ -122,6 +140,27 @@ namespace flx {
         void draw();
         int handle( int evt );
     private:
+        void onSystemButtonClick( Flx_SystemButton &btn, SystemBoxAction & action );
+        void drag();
+        MousePosition checkResizeCursor();
+        void resize();
+        void resizeHorz( int dx );
+        void resizeVert( int dy );
+        bool canResizeVert( int dy ) const;
+        bool canResizeHorz( int dx ) const;
+        void createTitleBar( int x, int y, int w, const char *pLbl = 0 );
+        void createSystemButtons( int x, int y, int sideLen );
+    private:
+        MousePosition _mousePos;
+        bool _dragging;
+        int _x, _y;
+        Fl_Group *_pTitleBar;
+        Fl_Color _titleBarColor;
+        Fl_Box *_pImageBox;
+        Fl_Box *_pTitleBox;
+        Fl_Group *_pSystemBox;
+        Flx_SystemButton *_pMinBtn, *_pMaxBtn, *_pCloseBtn;
+        Fl_Group *_pClientArea;
     };
     
     

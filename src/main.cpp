@@ -4,14 +4,28 @@
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Box.H>
 #include <FL/Fl.H>
+#include <FL/Fl_Button.H>
+#include <flx/Flx_ToolBar.h>
 
-#include <flx/Flx_MdiChild.h>
+
+#include <Flx_Mdi_Internal.h>
+
+using namespace flx;
 
 int main(int argc, char **argv) {
-  Fl_Double_Window win( 100, 100, 800, 800, "Multi Document Application" );
-  
-  win.end();
-  
-  win.show(argc, argv);
-  return Fl::run();
+    
+    Fl_Double_Window win( 100, 100, 800, 800, "Multi Document Application" );
+    Flx_ToolBar toolbar( 0, 0, 800, 40 );
+    toolbar.color( fl_rgb_color( 200, 200, 200 ) );
+    Flx_MdiContainer mdiContainer( 0, 25, 800, 600 );
+    
+    Flx_MdiChild child1( 50, 50, 250, 250, "Child 1" );
+    
+    mdiContainer.end();
+
+    win.end();
+    win.resizable( mdiContainer );
+
+    win.show(argc, argv);
+    return Fl::run();
 }
