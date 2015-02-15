@@ -35,6 +35,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
+	${OBJECTDIR}/_ext/2034070592/Flx_Mdi_Internal.o \
 	${OBJECTDIR}/_ext/2034070592/main.o
 
 # Test Directory
@@ -68,6 +69,11 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/flx_mdi: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/flx_mdi ${OBJECTFILES} ${LDLIBSOPTIONS}
 
+${OBJECTDIR}/_ext/2034070592/Flx_Mdi_Internal.o: /home/max/cpp/fltk/Flx_Mdi/src/Flx_Mdi_Internal.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/2034070592
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/2034070592/Flx_Mdi_Internal.o /home/max/cpp/fltk/Flx_Mdi/src/Flx_Mdi_Internal.cpp
+
 ${OBJECTDIR}/_ext/2034070592/main.o: /home/max/cpp/fltk/Flx_Mdi/src/main.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/2034070592
 	${RM} "$@.d"
@@ -88,6 +94,19 @@ ${TESTDIR}/_ext/784297060/newsimpletest.o: /home/max/cpp/fltk/PuRRechner/PuRRech
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -I. -MMD -MP -MF "$@.d" -o ${TESTDIR}/_ext/784297060/newsimpletest.o /home/max/cpp/fltk/PuRRechner/PuRRechner/src/tests/newsimpletest.cpp
 
+
+${OBJECTDIR}/_ext/2034070592/Flx_Mdi_Internal_nomain.o: ${OBJECTDIR}/_ext/2034070592/Flx_Mdi_Internal.o /home/max/cpp/fltk/Flx_Mdi/src/Flx_Mdi_Internal.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/2034070592
+	@NMOUTPUT=`${NM} ${OBJECTDIR}/_ext/2034070592/Flx_Mdi_Internal.o`; \
+	if (echo "$$NMOUTPUT" | ${GREP} '|main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
+	then  \
+	    ${RM} "$@.d";\
+	    $(COMPILE.cc) -O2 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/2034070592/Flx_Mdi_Internal_nomain.o /home/max/cpp/fltk/Flx_Mdi/src/Flx_Mdi_Internal.cpp;\
+	else  \
+	    ${CP} ${OBJECTDIR}/_ext/2034070592/Flx_Mdi_Internal.o ${OBJECTDIR}/_ext/2034070592/Flx_Mdi_Internal_nomain.o;\
+	fi
 
 ${OBJECTDIR}/_ext/2034070592/main_nomain.o: ${OBJECTDIR}/_ext/2034070592/main.o /home/max/cpp/fltk/Flx_Mdi/src/main.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/2034070592

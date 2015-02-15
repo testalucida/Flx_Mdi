@@ -5,6 +5,7 @@
 #include <FL/Fl_Box.H>
 #include <FL/Fl.H>
 
+#include <flx/Flx_MdiChild.h>
 
 int main(int argc, char **argv) {
   Fl_Double_Window win( 100, 100, 800, 800, "Multi Document Application" );

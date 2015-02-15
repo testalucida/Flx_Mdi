@@ -9,6 +9,8 @@
                    displayName="Source Files"
                    projectFiles="true">
       <logicalFolder name="src" displayName="src" projectFiles="true">
+        <itemPath>/home/max/cpp/fltk/Flx_Mdi/src/Flx_Mdi_Internal.cpp</itemPath>
+        <itemPath>/home/max/cpp/fltk/Flx_Mdi/src/Flx_Mdi_Internal.h</itemPath>
         <itemPath>/home/max/cpp/fltk/Flx_Mdi/src/main.cpp</itemPath>
       </logicalFolder>
     </logicalFolder>
@@ -91,6 +93,16 @@
           </makeArtifact>
         </requiredProjects>
       </compileType>
+      <item path="/home/max/cpp/fltk/Flx_Mdi/src/Flx_Mdi_Internal.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="/home/max/cpp/fltk/Flx_Mdi/src/Flx_Mdi_Internal.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="/home/max/cpp/fltk/Flx_Mdi/src/main.cpp"
             ex="false"
             tool="1"
@@ -137,6 +149,16 @@
           <developmentMode>5</developmentMode>
         </asmTool>
       </compileType>
+      <item path="/home/max/cpp/fltk/Flx_Mdi/src/Flx_Mdi_Internal.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="/home/max/cpp/fltk/Flx_Mdi/src/Flx_Mdi_Internal.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="/home/max/cpp/fltk/Flx_Mdi/src/main.cpp"
             ex="false"
             tool="1"
