@@ -18,7 +18,36 @@
 class Fl_Box;
 class Fl_Button;
 
+struct Rectangle {
+    int X, Y, W, H;
+};
+
 namespace flx {
+    static int __instanceCount = 0;
+    
+    class Instance {
+    public:
+        Instance() {
+            _instId = ++ __instanceCount;
+        }
+        
+        int getInstanceId() const { return _instId; }
+        
+    private:
+        int _instId;
+    };
+    
+    
+    static int getWidgetIndex( const Fl_Widget &w )  {
+        Fl_Group &p = *(w.parent());
+        for( int i = 0, imax = p.children(); i < imax; i++ ) {
+            Fl_Widget *pW = p.child( i );
+            if( pW == &w ) {
+                return i;
+            }
+        }
+        return -1;
+    }
     
     /** MousePosition where cursor changes */
     enum MousePosition {
@@ -128,7 +157,6 @@ namespace flx {
         Flx_SystemBox *_pSystemBox;
     };
     
-    
     /**
      * Flx_MdiChild repräsentiert ein Dokument im Flx_MdiContainer.
      * Es besteht aus der Client-Area, in der beliebige Widgets angeordnet
@@ -137,8 +165,13 @@ namespace flx {
     class Flx_MdiChild : public Fl_Group {
     public:
         Flx_MdiChild( int x, int y, int w, int h, const char *pLbl = 0 );
-        void draw();
+        const Rectangle getClientAreaSize() const;
+        void add( Fl_Widget & );
+        void add( Fl_Widget * );
         int handle( int evt );
+    protected:
+        void draw();
+        
     private:
         void onSystemButtonClick( Flx_SystemButton &btn, SystemBoxAction & action );
         void drag();
@@ -167,11 +200,14 @@ namespace flx {
     /**
      * Flx_MdiContainer verwaltet die Flx_MdiChild-Objekte.
      */
-    class Flx_MdiContainer : public Fl_Group {
+    class Flx_MdiContainer : public Fl_Group, public Instance {
     public:
         Flx_MdiContainer( int x, int y, int w, int h );
         void draw();
         int handle( int evt );
+        void add( Fl_Widget & );
+        void add( Fl_Widget * );
+        void end();
     private:
     };
 }

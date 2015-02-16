@@ -5,6 +5,7 @@
 #include <FL/Fl_Box.H>
 #include <FL/Fl.H>
 #include <FL/Fl_Button.H>
+#include <FL/Fl_Multiline_Input.H>
 #include <flx/Flx_ToolBar.h>
 
 
@@ -14,20 +15,43 @@ using namespace flx;
 
 int main(int argc, char **argv) {
     
-    Fl_Double_Window win( 100, 100, 800, 800, "Multi Document Application" );
+    Fl_Double_Window win( 400, 50, 800, 800, "Multi Document Application" );
     Flx_ToolBar toolbar( 0, 0, 800, 40 );
     toolbar.color( fl_rgb_color( 200, 200, 200 ) );
     Flx_MdiContainer mdiContainer( 0, 25, 800, 600 );
     
-    Flx_MdiChild child1( 50, 50, 250, 250, "Child 1" );
-    
-    Flx_MdiChild child2( 100, 100, 250, 250, "Child 2" );
-    
-    mdiContainer.end();
+        Flx_MdiChild child1( 50, 50, 250, 250, "Child 1" );
+        Rectangle rect = child1.getClientAreaSize();
+        Fl_Multiline_Input inp1( rect.X, rect.Y, rect.W, rect.H, "inp1" );
+        inp1.align( FL_ALIGN_CENTER | FL_ALIGN_INSIDE );
+        child1.add( inp1 );
 
+        Flx_MdiChild child2( 100, 100, 250, 250, "Child 2" );
+        rect = child2.getClientAreaSize();
+        Fl_Multiline_Input inp2( rect.X, rect.Y, rect.W, rect.H, "inp2" );
+        inp2.align( FL_ALIGN_CENTER | FL_ALIGN_INSIDE );
+        child2.add( inp2 );
+        
+        Flx_MdiChild child3( 130, 130, 250, 250, "Child 3" );
+        rect = child3.getClientAreaSize();
+        Fl_Multiline_Input inp3( rect.X, rect.Y, rect.W, rect.H, "inp3" );
+        inp3.align( FL_ALIGN_CENTER | FL_ALIGN_INSIDE );
+        child3.add( inp3 );
+
+    mdiContainer.end();
+//    child2.handle( FL_PUSH );
+    //child2.take_focus();
+    
     win.end();
     win.resizable( mdiContainer );
 
     win.show(argc, argv);
+    
+    fprintf( stderr, "index child1, child2: %d; %d\n", 
+            flx::getWidgetIndex( child1 ), flx::getWidgetIndex( child2 ) );
+    
+    Fl_Widget *pW = Fl::focus();
+    
+   
     return Fl::run();
 }

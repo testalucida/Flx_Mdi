@@ -15,6 +15,7 @@
 #include <stdarg.h>
 
 void log( const char* fmt, ... ) {
+#if DEBUG
     va_list list;
     va_start( list, fmt );
     
@@ -52,6 +53,7 @@ void log( const char* fmt, ... ) {
     va_end( list );
     
     putchar( '\n' );
+#endif
 }
 
 
@@ -116,7 +118,8 @@ namespace flx {
 
     Flx_MdiChild::Flx_MdiChild( int x, int y, int w, int h, const char *pLbl )
     : Fl_Group( x, y, w, h )
-    , _titleBarColor( fl_lighter( FL_GREEN ) ) {
+    , _titleBarColor( fl_lighter( FL_GREEN ) ) 
+    {
         box( FL_BORDER_BOX );
 
         createTitleBar( x + 1, y + 1, w - 2, pLbl );
@@ -185,9 +188,29 @@ namespace flx {
     }
 
     void Flx_MdiChild::draw( ) {
+        log( "drawing MdiChild %s (index: %d, focused: %s)", 
+                _pTitleBox->label(), getWidgetIndex( *this ),
+                Fl::focus()->label() );
         Fl_Group::draw( );
     }
+    
+    const Rectangle Flx_MdiChild::getClientAreaSize() const {
+        Rectangle r;
+        r.X = _pClientArea->x();
+        r.Y = _pClientArea->y();
+        r.W = _pClientArea->w();
+        r.H = _pClientArea->h();
+        return r;
+    }
 
+    void Flx_MdiChild::add( Fl_Widget &w ) {
+        _pClientArea->add( w );
+    }
+    
+    void Flx_MdiChild::add( Fl_Widget *pW ) {
+        add( *pW );
+    }
+    
     int Flx_MdiChild::handle( int evt ) {
         int rc = Fl_Group::handle( evt );
 
@@ -199,14 +222,21 @@ namespace flx {
                 fl_cursor( FL_CURSOR_DEFAULT );
                 break;
             case FL_PUSH:
-            {   
-                //bring "this" on top:
-                Fl_Group *pParent = parent( );
-                if( pParent->children( ) > 1 ) {
-                    pParent->remove( this );
-                    pParent->add( this );
-                    pParent->redraw( );
+            {                  
+                //if /this/ == Fl_MdiChild (not one of its children)
+                //then make it the last in the Fl_Group::array(). Thus,
+                //it will be drawn /last/, i.e. "over" the other
+                //Flx_MdiChild instances:
+                if( typeid( *this ).name() == typeid( Flx_MdiChild ).name() ) {
+                    Fl_Group *pParent = parent();
+                    if( pParent->children( ) > 1 ) {                    
+                        pParent->remove( this );
+                        pParent->add( this );                    
+                        pParent->redraw( );
+                        this->take_focus();
+                    }
                 }
+                
 
                 _x = Fl::event_x( );
                 _y = Fl::event_y( );
@@ -215,7 +245,7 @@ namespace flx {
                      Fl_Widget *pW = Fl::belowmouse();  
                      if( pW == _pTitleBox ) {
                          _dragging = true;
-                         fl_cursor( FL_CURSOR_MOVE );         
+                         fl_cursor( FL_CURSOR_MOVE );                         
                      }
                 }
                 
@@ -397,6 +427,22 @@ namespace flx {
     Flx_MdiContainer::Flx_MdiContainer( int x, int y, int w, int h )
     : Fl_Group( x, y, w, h ) {
 
+    }
+    
+    void Flx_MdiContainer::end() {
+        Fl_Group::end();
+        if( children() > 0 ) {
+            child( children() - 1 )->handle( FL_PUSH );
+        }
+    }
+    
+    void Flx_MdiContainer::add( Fl_Widget &w ) {
+        Fl_Group::add( w );
+        log( "Neues MdiChild hat index: %d", getWidgetIndex( w ) );
+    }
+    
+    void Flx_MdiContainer::add( Fl_Widget *pW ) {
+        add( *pW );
     }
 
     void Flx_MdiContainer::draw( ) {
