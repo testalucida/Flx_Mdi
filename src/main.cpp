@@ -21,6 +21,8 @@ int main(int argc, char **argv) {
     
     Flx_MdiChild child1( 50, 50, 250, 250, "Child 1" );
     
+    Flx_MdiChild child2( 100, 100, 250, 250, "Child 2" );
+    
     mdiContainer.end();
 
     win.end();
