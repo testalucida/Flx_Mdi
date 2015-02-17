@@ -24,18 +24,21 @@ int main(int argc, char **argv) {
         Rectangle rect = child1.getClientAreaSize();
         Fl_Multiline_Input inp1( rect.X, rect.Y, rect.W, rect.H, "inp1" );
         inp1.align( FL_ALIGN_CENTER | FL_ALIGN_INSIDE );
+        inp1.box( FL_FLAT_BOX );
         child1.add( inp1 );
 
         Flx_MdiChild child2( 100, 100, 250, 250, "Child 2" );
         rect = child2.getClientAreaSize();
         Fl_Multiline_Input inp2( rect.X, rect.Y, rect.W, rect.H, "inp2" );
         inp2.align( FL_ALIGN_CENTER | FL_ALIGN_INSIDE );
+        inp2.box( FL_FLAT_BOX );
         child2.add( inp2 );
         
         Flx_MdiChild child3( 130, 130, 250, 250, "Child 3" );
         rect = child3.getClientAreaSize();
         Fl_Multiline_Input inp3( rect.X, rect.Y, rect.W, rect.H, "inp3" );
         inp3.align( FL_ALIGN_CENTER | FL_ALIGN_INSIDE );
+        inp3.box( FL_FLAT_BOX );
         child3.add( inp3 );
 
     mdiContainer.end();

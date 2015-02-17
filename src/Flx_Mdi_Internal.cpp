@@ -100,12 +100,13 @@ namespace flx {
     , _titleBarColorFocused( fl_lighter( FL_GREEN ) )
     , _titleBarColorUnfocused ( fl_rgb_color( 86, 182, 0 ) )
     {
-        box( FL_BORDER_BOX );
+        box( FL_FLAT_BOX );
+        //color( FL_RED );
 
         createTitleBar( x + 1, y + 1, w - 2, pLbl );
         
-        _pClientArea = new Fl_Group( x+1, y + _pTitleBar->h(), 
-                                     w-2, h - _pTitleBar->h() - 1, "ClientArea" );
+        _pClientArea = new Fl_Group( x+3, y + _pTitleBar->h(), 
+                                     w-6, h - _pTitleBar->h() - 3, "ClientArea" );
         _pClientArea->box( FL_FLAT_BOX );
         _pClientArea->align( FL_ALIGN_CENTER | FL_ALIGN_INSIDE );
         _pClientArea->color( FL_WHITE );
