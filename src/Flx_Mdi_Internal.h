@@ -106,56 +106,7 @@ namespace flx {
     };
     
     
-    /**
-     * Systembox auf der rechten Seite der Flx_TitleBar.
-     * Enthält 3 Flx_SystemButtons.
-     */
-    class Flx_SystemBox : public Fl_Group {
-        my::Signal< Flx_SystemBox, SystemBoxAction > signalSystemButtonClicked;
-    public:
-        Flx_SystemBox( int x, int y, int w, int h );
-        void draw();
-        int handle( int evt );
-    private:
-        /**
-         * Callback-Methode, die nach dem Drücken eines Systembox-
-         * Button gerufen wird
-         * @param btn: der gedrückte Button
-         * @param 
-         */
-        //void onControlButton( Flx_Button &btn, ActionParm & );
-    private:
-        Flx_SystemButton *_pMinBtn, *_pMaxBtn, *_pCloseBtn;
-    };
-    
-    
-    /**
-     * Jedes Flx_MdiChild hat eine Flx_TitleBar, bestehend aus einem
-     * Icon, dem Titel und einer Flx_SystemBox.
-     */
-    class Flx_TitleBar : public Fl_Group {
-    public:
-        my::Signal< Flx_TitleBar, SystemBoxAction > signalSystemButtonClicked;
-    public:
-        Flx_TitleBar( int x, int y, int w, int h, const char *pLbl = 0 );
-        bool isMouseOverSystemBox() const;
-        bool isMouseOverTitle() const;
-        void draw();
-        int handle( int evt );
-    private:
-        /**
-         * Callback-Methode, die gerufen wird, wenn ein System-Button
-         * gedrückt wird
-         * @param systemBox
-         * @param action
-         */
-        void onSystemBoxAction( Flx_SystemBox &systemBox, SystemBoxAction &action );
-    private:
-        my::CharBuffer _title;
-        Fl_Box *_pImageBox;
-        Fl_Box *_pTitleBox;
-        Flx_SystemBox *_pSystemBox;
-    };
+
     
     /**
      * Flx_MdiChild repräsentiert ein Dokument im Flx_MdiContainer.
@@ -183,12 +134,14 @@ namespace flx {
         bool canResizeHorz( int dx ) const;
         void createTitleBar( int x, int y, int w, const char *pLbl = 0 );
         void createSystemButtons( int x, int y, int sideLen );
+        void setTitleBarColorFocused( bool focused );
     private:
         MousePosition _mousePos;
         bool _dragging;
         int _x, _y;
         Fl_Group *_pTitleBar;
-        Fl_Color _titleBarColor;
+        Fl_Color _titleBarColorFocused;
+        Fl_Color _titleBarColorUnfocused;
         Fl_Box *_pImageBox;
         Fl_Box *_pTitleBox;
         Fl_Group *_pSystemBox;

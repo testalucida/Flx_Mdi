@@ -90,35 +90,15 @@ namespace flx {
         signalSystemButtonClick.send( *this, action );
     }
 
-    ///////////////////////////////////////////////////////////
-    ////////////  Flx_TitleBar  ///////////////////////////////
-    ///////////////////////////////////////////////////////////
-
-    bool Flx_TitleBar::isMouseOverSystemBox( ) const {
-        Fl_Widget *pW = Fl::belowmouse( );
-        //if( pW == _pMinBtn || pW == _pMaxBtn || pW == _pCloseBtn ) {
-        if( pW == _pSystemBox ) {
-            return true;
-        }
-        return false;
-    }
-
-    bool Flx_TitleBar::isMouseOverTitle( ) const {
-        Fl_Widget *pW = Fl::belowmouse( );
-        if( pW == _pTitleBox ) {
-            return true;
-        }
-        return false;
-    }
-
-
+ 
     ///////////////////////////////////////////////////////////
     ////////////  Flx_MdiChild  ///////////////////////////////
     ///////////////////////////////////////////////////////////
 
     Flx_MdiChild::Flx_MdiChild( int x, int y, int w, int h, const char *pLbl )
     : Fl_Group( x, y, w, h )
-    , _titleBarColor( fl_lighter( FL_GREEN ) ) 
+    , _titleBarColorFocused( fl_lighter( FL_GREEN ) )
+    , _titleBarColorUnfocused ( fl_rgb_color( 86, 182, 0 ) )
     {
         box( FL_BORDER_BOX );
 
@@ -143,7 +123,7 @@ namespace flx {
         _pTitleBar = new Fl_Group( x, y, w, titleBarH );
         _pTitleBar->user_data( (void*)"titleBar" ); //for debugging purposes
         _pTitleBar->box( FL_FLAT_BOX );
-        _pTitleBar->color( _titleBarColor );
+        _pTitleBar->color( _titleBarColorUnfocused );
 
         //////// ImageBox
         _pImageBox = new Fl_Box( x, y, imgBoxSideLen, imgBoxSideLen );
@@ -154,7 +134,7 @@ namespace flx {
                 titleBoxW, titleBarH, pLbl );
         _pTitleBox->align( FL_ALIGN_CENTER | FL_ALIGN_INSIDE );
         _pTitleBox->box( FL_FLAT_BOX );
-        _pTitleBox->color( FL_YELLOW );
+        _pTitleBox->color( _titleBarColorUnfocused );
 
         /////// SystemBox
         _pSystemBox = new Fl_Group( _pTitleBar->x( ) + _pTitleBar->w( ) - sysBoxW, y,
@@ -169,28 +149,41 @@ namespace flx {
         _pTitleBar->end( );
         _pTitleBar->resizable( _pTitleBox );
     }
+    
 
     void Flx_MdiChild::createSystemButtons( int x, int y, int sideLen ) {
-        _pMinBtn = new Flx_SystemButton( x, y, sideLen, sideLen, SYSTEMBUTTON_MINI, _titleBarColor );
+        _pMinBtn = new Flx_SystemButton( x, y, sideLen, sideLen, SYSTEMBUTTON_MINI, 
+                                        _titleBarColorUnfocused );
         _pMinBtn->signalSystemButtonClick
                 .connect< Flx_MdiChild, &Flx_MdiChild::onSystemButtonClick >( this );
 
         _pMaxBtn = new Flx_SystemButton( _pMinBtn->x( ) + _pMinBtn->w( ), y,
-                sideLen, sideLen, SYSTEMBUTTON_MAXI, _titleBarColor );
+                sideLen, sideLen, SYSTEMBUTTON_MAXI, _titleBarColorUnfocused );
         _pMaxBtn->signalSystemButtonClick
                 .connect< Flx_MdiChild, &Flx_MdiChild::onSystemButtonClick >( this );
 
 
         _pCloseBtn = new Flx_SystemButton( _pMaxBtn->x( ) + _pMaxBtn->w( ), y,
-                sideLen, sideLen, SYSTEMBUTTON_CLOSE, _titleBarColor );
+                sideLen, sideLen, SYSTEMBUTTON_CLOSE, _titleBarColorUnfocused );
         _pCloseBtn->signalSystemButtonClick
                 .connect< Flx_MdiChild, &Flx_MdiChild::onSystemButtonClick >( this );
     }
 
+    
+    void Flx_MdiChild::setTitleBarColorFocused( bool focused ) {
+        Fl_Color colr = focused ? _titleBarColorFocused : _titleBarColorUnfocused;
+  
+        _pTitleBar->color( colr );
+        _pTitleBox->color( colr );
+        _pMinBtn->color( colr );
+        _pMaxBtn->color( colr );
+        _pCloseBtn->color( colr );
+    }
+    
     void Flx_MdiChild::draw( ) {
-        log( "drawing MdiChild %s (index: %d, focused: %s)", 
-                _pTitleBox->label(), getWidgetIndex( *this ),
-                Fl::focus()->label() );
+//        log( "drawing MdiChild %s (index: %d, focused: %s)", 
+//                _pTitleBox->label(), getWidgetIndex( *this ),
+//                Fl::focus()->label() );
         Fl_Group::draw( );
     }
     
@@ -220,6 +213,16 @@ namespace flx {
                 break;
             case FL_LEAVE:
                 fl_cursor( FL_CURSOR_DEFAULT );
+                break;
+            case FL_FOCUS:
+                log( "FOCUS: %s", _pTitleBox->label() );
+                setTitleBarColorFocused( true );
+                redraw();
+                break;
+            case FL_UNFOCUS:
+                log( "UNFOCUS: %s", _pTitleBox->label() );
+                setTitleBarColorFocused( false );
+                redraw();
                 break;
             case FL_PUSH:
             {                  
