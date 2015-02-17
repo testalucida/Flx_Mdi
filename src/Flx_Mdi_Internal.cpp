@@ -102,11 +102,14 @@ namespace flx {
     {
         box( FL_FLAT_BOX );
         //color( FL_RED );
-
-        createTitleBar( x + 1, y + 1, w - 2, pLbl );
         
-        _pClientArea = new Fl_Group( x+3, y + _pTitleBar->h(), 
-                                     w-6, h - _pTitleBar->h() - 3, "ClientArea" );
+        int border = 3;
+
+        createTitleBar( x + border, y + 2, w - 2*border, pLbl );
+        
+        _pClientArea = new Fl_Group( x+border, y + _pTitleBar->h(), 
+                                     w-2*border, h - _pTitleBar->h() - border, 
+                                    "ClientArea" );
         _pClientArea->box( FL_FLAT_BOX );
         _pClientArea->align( FL_ALIGN_CENTER | FL_ALIGN_INSIDE );
         _pClientArea->color( FL_WHITE );
@@ -301,7 +304,7 @@ namespace flx {
     }
 
     void Flx_MdiChild::onSystemButtonClick( Flx_SystemButton &btn, SystemBoxAction & action ) {
-
+        signalSystemButtonClick.send( *this, action );
     }
 
     void Flx_MdiChild::drag( ) {

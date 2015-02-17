@@ -115,6 +115,8 @@ namespace flx {
      */
     class Flx_MdiChild : public Fl_Group {
     public:
+        my::Signal<Flx_MdiChild, SystemBoxAction> signalSystemButtonClick;
+    public:
         Flx_MdiChild( int x, int y, int w, int h, const char *pLbl = 0 );
         const Rectangle getClientAreaSize() const;
         void add( Fl_Widget & );
