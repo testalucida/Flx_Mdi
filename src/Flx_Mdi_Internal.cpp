@@ -189,8 +189,10 @@ namespace flx {
         bool clipped = false;
         Fl_Widget *p = parent();
         int overlapY = y() + h() - ( p->y() + p->h() );
-        if( overlapY > 0 ) {          
-            fl_push_clip( x(), y(), w(), h() - overlapY );
+        int overlapX = x() + w() - ( p->x() + p->w() );
+        overlapX = overlapX < 0 ? 0 : overlapX;
+        if( overlapY > 0 || overlapX > 0 ) {          
+            fl_push_clip( x(), y(), w() - overlapX, h() - overlapY );
             clipped = true;
         }
         
