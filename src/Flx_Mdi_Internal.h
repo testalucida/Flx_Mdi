@@ -23,6 +23,9 @@ struct Rectangle {
 };
 
 namespace flx {
+    
+    struct ActionParm;
+    
     static int __instanceCount = 0;
     
     class Instance {
@@ -157,13 +160,21 @@ namespace flx {
      */
     class Flx_MdiContainer : public Fl_Group, public Instance {
     public:
+        my::Signal<Flx_MdiContainer, ActionParm> signalBeforeChildClose;
+    public:
         Flx_MdiContainer( int x, int y, int w, int h );
         void draw();
         int handle( int evt );
         void add( Fl_Widget & );
         void add( Fl_Widget * );
+        void remove( Fl_Widget & );
+        void remove( int i );
+        void remove( Fl_Widget * );
         void end();
     private:
+        void onChildSystemButtonClick( Flx_MdiChild &child, SystemBoxAction &action );
+        void connectToChildSignals( Flx_MdiChild &child );
+        void disconnectFromChildSignals( Flx_MdiChild &child );
     };
 }
 

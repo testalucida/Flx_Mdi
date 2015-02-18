@@ -6,6 +6,7 @@
  */
 
 #include "Flx_Mdi_Internal.h"
+#include <flx/flx_signalparms.h>
 
 #include <FL/Fl.H>
 #include <FL/Fl_Widget.H>
@@ -235,7 +236,7 @@ namespace flx {
                 //it will be drawn /last/, i.e. "over" the other
                 //Flx_MdiChild instances:
                 if( typeid( *this ).name() == typeid( Flx_MdiChild ).name() ) {
-                    Fl_Group *pParent = parent();
+                    Flx_MdiContainer *pParent = (Flx_MdiContainer*)parent();
                     if( pParent->children( ) > 1 ) {                    
                         pParent->remove( this );
                         pParent->add( this );                    
@@ -438,6 +439,14 @@ namespace flx {
     
     void Flx_MdiContainer::end() {
         Fl_Group::end();
+        
+        for( int i = 0, imax = children(); i < imax; i++ ) {
+            Fl_Widget *pW = child( i ); 
+            if( typeid( *pW ).name() == typeid( Flx_MdiChild ).name() ) {
+                connectToChildSignals( (Flx_MdiChild&)*pW );
+            }
+        }
+        
         if( children() > 0 ) {
             child( children() - 1 )->handle( FL_PUSH );
         }
@@ -445,11 +454,30 @@ namespace flx {
     
     void Flx_MdiContainer::add( Fl_Widget &w ) {
         Fl_Group::add( w );
-        log( "Neues MdiChild hat index: %d", getWidgetIndex( w ) );
+        //log( "Neues MdiChild hat index: %d", getWidgetIndex( w ) );
+        
+         if( typeid( w ).name() == typeid( Flx_MdiChild ).name() ) {
+             connectToChildSignals( (Flx_MdiChild&)w );
+         }
     }
     
     void Flx_MdiContainer::add( Fl_Widget *pW ) {
         add( *pW );
+    }
+    
+    void Flx_MdiContainer::remove( Fl_Widget *pW ) {
+        remove( *pW );
+    }
+    
+    void Flx_MdiContainer::remove( Fl_Widget &w ) {
+        if( typeid( w ).name() == typeid( Flx_MdiChild ).name() ) {
+             disconnectFromChildSignals( (Flx_MdiChild&)w );
+        }
+        Fl_Group::remove( w );
+    }
+    
+    void Flx_MdiContainer::remove( int i ) {
+        remove( *child( i ) );
     }
 
     void Flx_MdiContainer::draw( ) {
@@ -459,6 +487,25 @@ namespace flx {
     int Flx_MdiContainer::handle( int evt ) {
         int rc = Fl_Group::handle( evt );
         return rc;
+    }
+    
+    void Flx_MdiContainer::onChildSystemButtonClick( Flx_MdiChild &child, SystemBoxAction &action ) {
+        if( action.actionButton == SYSTEMBUTTON_CLOSE ) {
+            ActionParm action;
+            signalBeforeChildClose.send( *this, action );
+            remove( child );
+            parent()->redraw();
+        }
+    }
+    
+    void Flx_MdiContainer::connectToChildSignals( Flx_MdiChild &child ) {
+        child.signalSystemButtonClick.
+                connect<Flx_MdiContainer, &Flx_MdiContainer::onChildSystemButtonClick>( this );
+    }
+    
+    void Flx_MdiContainer::disconnectFromChildSignals( Flx_MdiChild &child ) {
+        child.signalSystemButtonClick.
+                disconnect<Flx_MdiContainer, &Flx_MdiContainer::onChildSystemButtonClick>( this );
     }
 
 } //ns flx
