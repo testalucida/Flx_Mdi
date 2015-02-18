@@ -186,10 +186,19 @@ namespace flx {
     }
     
     void Flx_MdiChild::draw( ) {
-//        log( "drawing MdiChild %s (index: %d, focused: %s)", 
-//                _pTitleBox->label(), getWidgetIndex( *this ),
-//                Fl::focus()->label() );
+        bool clipped = false;
+        Fl_Widget *p = parent();
+        int overlapY = y() + h() - ( p->y() + p->h() );
+        if( overlapY > 0 ) {          
+            fl_push_clip( x(), y(), w(), h() - overlapY );
+            clipped = true;
+        }
+        
         Fl_Group::draw( );
+        
+        if( clipped ) {
+            fl_pop_clip();
+        }
     }
     
     const Rectangle Flx_MdiChild::getClientAreaSize() const {
@@ -220,12 +229,12 @@ namespace flx {
                 fl_cursor( FL_CURSOR_DEFAULT );
                 break;
             case FL_FOCUS:
-                log( "FOCUS: %s", _pTitleBox->label() );
+                //log( "FOCUS: %s", _pTitleBox->label() );
                 setTitleBarColorFocused( true );
                 redraw();
                 break;
             case FL_UNFOCUS:
-                log( "UNFOCUS: %s", _pTitleBox->label() );
+                //log( "UNFOCUS: %s", _pTitleBox->label() );
                 setTitleBarColorFocused( false );
                 redraw();
                 break;
@@ -481,6 +490,7 @@ namespace flx {
     }
 
     void Flx_MdiContainer::draw( ) {
+        log( "Container.draw" );
         Fl_Group::draw( );
     }
 
@@ -491,9 +501,14 @@ namespace flx {
     
     void Flx_MdiContainer::onChildSystemButtonClick( Flx_MdiChild &child, SystemBoxAction &action ) {
         if( action.actionButton == SYSTEMBUTTON_CLOSE ) {
-            ActionParm action;
+            VetoableCloseAction action;
             signalBeforeChildClose.send( *this, action );
-            remove( child );
+            if( action.CanClose ) {
+                remove( child );
+                parent()->redraw();
+            } 
+        } else if( action.actionButton == SYSTEMBUTTON_MAXI ) {           
+            ((Fl_Group&)child).resize( x(), y(), w(), h() );
             parent()->redraw();
         }
     }

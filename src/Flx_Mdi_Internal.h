@@ -93,6 +93,11 @@ namespace flx {
         SystemBoxButtonType actionButton;
     };
     
+    struct VetoableCloseAction {
+        VetoableCloseAction() : CanClose( true ) {}
+        bool CanClose;
+    };
+    
     
     /**
      * SystemButton 
@@ -160,7 +165,7 @@ namespace flx {
      */
     class Flx_MdiContainer : public Fl_Group, public Instance {
     public:
-        my::Signal<Flx_MdiContainer, ActionParm> signalBeforeChildClose;
+        my::Signal<Flx_MdiContainer, VetoableCloseAction> signalBeforeChildClose;
     public:
         Flx_MdiContainer( int x, int y, int w, int h );
         void draw();

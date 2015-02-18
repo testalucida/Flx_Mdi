@@ -18,7 +18,9 @@ int main(int argc, char **argv) {
     Fl_Double_Window win( 400, 50, 800, 800, "Multi Document Application" );
     Flx_ToolBar toolbar( 0, 0, 800, 40 );
     toolbar.color( fl_rgb_color( 200, 200, 200 ) );
-    Flx_MdiContainer mdiContainer( 0, 25, 800, 600 );
+    Flx_MdiContainer mdiContainer( 0, 40, 800, 600 );
+    mdiContainer.box( FL_FLAT_BOX );
+    mdiContainer.color( FL_BLUE );
     
         Flx_MdiChild child1( 50, 50, 250, 250, "Child 1" );
         Rectangle rect = child1.getClientAreaSize();
@@ -42,9 +44,7 @@ int main(int argc, char **argv) {
         child3.add( inp3 );
 
     mdiContainer.end();
-//    child2.handle( FL_PUSH );
-    //child2.take_focus();
-    
+
     win.end();
     win.resizable( mdiContainer );
 
