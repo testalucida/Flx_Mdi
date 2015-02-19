@@ -476,7 +476,17 @@ namespace flx {
     
     void Flx_MdiChild::resize( int x, int y, int w, int h ) {
         Fl_Group::resize( x, y, w, h );
-        //rememberSize();
+        Fl_Group *pParent = parent()->as_group();
+        if( pParent ) {
+            if( x == pParent->x() && y == pParent->y() &&
+                w == pParent->w() && h == pParent->h() )
+            {
+                ; //do nothing
+            } else {
+                rememberSize();
+            }
+           
+        }
     }
 
     void Flx_MdiChild::rememberSize() {
