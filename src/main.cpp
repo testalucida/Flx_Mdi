@@ -8,7 +8,6 @@
 #include <FL/Fl_Multiline_Input.H>
 #include <flx/Flx_ToolBar.h>
 
-
 #include <Flx_Mdi_Internal.h>
 
 using namespace flx;
@@ -42,6 +41,15 @@ int main(int argc, char **argv) {
         inp3.align( FL_ALIGN_CENTER | FL_ALIGN_INSIDE );
         inp3.box( FL_FLAT_BOX );
         child3.add( inp3 );
+        
+        Flx_MdiChild child4( 180, 180, 250, 250, "Child 4" );
+        rect = child4.getClientAreaSize();
+        Fl_Multiline_Input inp4( rect.X, rect.Y, rect.W, rect.H, "inp4" );
+        inp4.align( FL_ALIGN_CENTER | FL_ALIGN_INSIDE );
+        inp4.box( FL_FLAT_BOX );
+        child4.add( inp4 );
+        
+        
 
     mdiContainer.end();
 
@@ -50,11 +58,12 @@ int main(int argc, char **argv) {
 
     win.show(argc, argv);
     
-    fprintf( stderr, "index child1, child2: %d; %d\n", 
-            flx::getWidgetIndex( child1 ), flx::getWidgetIndex( child2 ) );
+//    fprintf( stderr, "index child1, child2: %d; %d\n", 
+//            flx::getWidgetIndex( child1 ), flx::getWidgetIndex( child2 ) );
     
     Fl_Widget *pW = Fl::focus();
     
+    mdiContainer.arrangeChildren();
    
     return Fl::run();
 }

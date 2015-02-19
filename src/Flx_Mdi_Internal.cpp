@@ -6,6 +6,7 @@
  */
 
 #include "Flx_Mdi_Internal.h"
+#include "../images/mdi.xpm"
 #include <flx/flx_signalparms.h>
 
 #include <FL/Fl.H>
@@ -13,7 +14,12 @@
 #include <FL/Fl_Box.H>
 #include <FL/fl_draw.H>
 #include <FL/Fl_Button.H>
+#include <FL/Fl_Pixmap.H>
+
 #include <stdarg.h>
+#include <cmath>
+
+using namespace std;
 
 void log( const char* fmt, ... ) {
 #if DEBUG
@@ -132,7 +138,9 @@ namespace flx {
 
         //////// ImageBox
         _pImageBox = new Fl_Box( x, y, imgBoxSideLen, imgBoxSideLen );
-        _pImageBox->user_data( (void*)"imageBox" ); //for debugging purposes
+        //Default Icon:
+        _pIcon = new Fl_Pixmap( mdi_xpm );
+        _pImageBox->image( _pIcon );
 
         /////// TitleBox
         _pTitleBox = new Fl_Box( _pImageBox->x( ) + _pImageBox->w( ), y,
@@ -491,8 +499,42 @@ namespace flx {
         remove( *child( i ) );
     }
 
+    const MdiChildListPtr Flx_MdiContainer::getMdiChildren() const {
+        MdiChildListPtr ptr( new vector<Flx_MdiChild*>() );
+        for( int i = children()-1; i > -1; i-- ) {
+            Flx_MdiChild *pChild = (Flx_MdiChild*)child( i );
+            if( typeid( *pChild ).name() == typeid( Flx_MdiChild ).name() ) {
+                ptr->push_back( pChild );
+            }
+        }
+        return ptr;
+    }
+    
+    void Flx_MdiContainer::arrangeChildren() {
+        if( w() < 200 || h() < 200 ) {return;} 
+        
+        float maxrows = 3;
+        float rows = ceil( (float)children() / maxrows );
+        
+        float H = (float)h() / rows;
+        
+        float cols = (float)children() / rows;
+        float W = (float)w() / cols;
+        
+        int X = x(), Y = y();
+        for( int r = 0; r < rows; r++ ) {
+            for( int c = 0; c < cols; c++ ) {
+                int idx = r * cols + c;
+                child( idx )->resize( X, Y, W, H );
+                X += W;
+            }
+            X = x();
+            Y += H;
+        }
+    }
+    
     void Flx_MdiContainer::draw( ) {
-        log( "Container.draw" );
+        //log( "Container.draw" );
         Fl_Group::draw( );
     }
 
@@ -505,7 +547,7 @@ namespace flx {
         if( action.actionButton == SYSTEMBUTTON_CLOSE ) {
             VetoableCloseAction action;
             signalBeforeChildClose.send( *this, action );
-            if( action.CanClose ) {
+            if( action.canClose ) {
                 remove( child );
                 parent()->redraw();
             } 

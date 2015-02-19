@@ -14,9 +14,13 @@
 #include <my/Signal.hpp>
 #include <my/CharBuffer.h>
 
+#include <vector>
+#include <memory>
+
 //forward declarations
 class Fl_Box;
 class Fl_Button;
+class Fl_Pixmap;
 
 struct Rectangle {
     int X, Y, W, H;
@@ -24,22 +28,8 @@ struct Rectangle {
 
 namespace flx {
     
-    struct ActionParm;
-    
-    static int __instanceCount = 0;
-    
-    class Instance {
-    public:
-        Instance() {
-            _instId = ++ __instanceCount;
-        }
-        
-        int getInstanceId() const { return _instId; }
-        
-    private:
-        int _instId;
-    };
-    
+    class Flx_MdiChild;
+    typedef std::shared_ptr< std::vector<Flx_MdiChild*> > MdiChildListPtr; 
     
     static int getWidgetIndex( const Fl_Widget &w )  {
         Fl_Group &p = *(w.parent());
@@ -94,8 +84,8 @@ namespace flx {
     };
     
     struct VetoableCloseAction {
-        VetoableCloseAction() : CanClose( true ) {}
-        bool CanClose;
+        VetoableCloseAction() : canClose( true ) {}
+        bool canClose;
     };
     
     
@@ -112,8 +102,6 @@ namespace flx {
     private:
         SystemBoxButtonType _type;
     };
-    
-    
 
     
     /**
@@ -157,13 +145,14 @@ namespace flx {
         Fl_Group *_pSystemBox;
         Flx_SystemButton *_pMinBtn, *_pMaxBtn, *_pCloseBtn;
         Fl_Group *_pClientArea;
+        Fl_Pixmap *_pIcon;
     };
     
     
     /**
      * Flx_MdiContainer verwaltet die Flx_MdiChild-Objekte.
      */
-    class Flx_MdiContainer : public Fl_Group, public Instance {
+    class Flx_MdiContainer : public Fl_Group {
     public:
         my::Signal<Flx_MdiContainer, VetoableCloseAction> signalBeforeChildClose;
     public:
@@ -176,6 +165,20 @@ namespace flx {
         void remove( int i );
         void remove( Fl_Widget * );
         void end();
+        /**
+         * Liefert die geöffneten MdiChildren in der Reihenfolge
+         * absteigender Indices. D.h., das Child, das gerade den
+         * Focus hat, ist das erste im Vector.
+         * @return MdiChildListPtr ( vector<Flx_MdiChild*> )
+         */
+        const MdiChildListPtr getMdiChildren() const;
+        /**
+         * Ordnet die geöffneten MdiChildren von links nach rechts und
+         * von oben nach unten an.
+         * Die Größe der Children wird dabei so geändert, dass sie in in diesen
+         * Container - bei gegebener Größe -  hineinpassen.
+         */
+        void arrangeChildren();
     private:
         void onChildSystemButtonClick( Flx_MdiChild &child, SystemBoxAction &action );
         void connectToChildSignals( Flx_MdiChild &child );
