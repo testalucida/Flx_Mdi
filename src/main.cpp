@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
     toolbar.color( fl_rgb_color( 200, 200, 200 ) );
     Flx_MdiContainer mdiContainer( 0, 40, 800, 600 );
     mdiContainer.box( FL_FLAT_BOX );
-    mdiContainer.color( FL_BLUE );
+    //mdiContainer.color( FL_BLUE );
     
         Flx_MdiChild child1( 50, 50, 250, 250, "Child 1" );
         Rectangle rect = child1.getClientAreaSize();
@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
 //    fprintf( stderr, "index child1, child2: %d; %d\n", 
 //            flx::getWidgetIndex( child1 ), flx::getWidgetIndex( child2 ) );
     
-    Fl_Widget *pW = Fl::focus();
+    //Fl_Widget *pW = Fl::focus();
     
     mdiContainer.arrangeChildren();
    

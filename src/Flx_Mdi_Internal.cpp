@@ -104,24 +104,25 @@ namespace flx {
 
     Flx_MdiChild::Flx_MdiChild( int x, int y, int w, int h, const char *pLbl )
     : Fl_Group( x, y, w, h )
-    , _titleBarColorFocused( fl_lighter( FL_GREEN ) )
-    , _titleBarColorUnfocused ( fl_rgb_color( 86, 182, 0 ) )
+    , _titleBarColorFocused ( fl_rgb_color( 26, 26, 26 ) )
+    , _titleBarColorUnfocused( fl_rgb_color( 160, 160, 160 ) )
     {
         box( FL_FLAT_BOX );
-        //color( FL_RED );
-        
+      
         int border = 3;
 
         createTitleBar( x + border, y + 2, w - 2*border, pLbl );
         
         _pClientArea = new Fl_Group( x+border, y + _pTitleBar->h(), 
                                      w-2*border, h - _pTitleBar->h() - border, 
-                                    "ClientArea" );
+                                    "" );
         _pClientArea->box( FL_FLAT_BOX );
         _pClientArea->align( FL_ALIGN_CENTER | FL_ALIGN_INSIDE );
         _pClientArea->color( FL_WHITE );
         end( );
         resizable( _pClientArea );
+        
+        rememberSize();
     }
 
     void Flx_MdiChild::createTitleBar( int x, int y, int w, const char *pLbl ) {
@@ -134,7 +135,7 @@ namespace flx {
         _pTitleBar = new Fl_Group( x, y, w, titleBarH );
         _pTitleBar->user_data( (void*)"titleBar" ); //for debugging purposes
         _pTitleBar->box( FL_FLAT_BOX );
-        _pTitleBar->color( _titleBarColorUnfocused );
+        //_pTitleBar->color( _titleBarColorUnfocused );
 
         //////// ImageBox
         _pImageBox = new Fl_Box( x, y, imgBoxSideLen, imgBoxSideLen );
@@ -147,12 +148,12 @@ namespace flx {
                 titleBoxW, titleBarH, pLbl );
         _pTitleBox->align( FL_ALIGN_CENTER | FL_ALIGN_INSIDE );
         _pTitleBox->box( FL_FLAT_BOX );
-        _pTitleBox->color( _titleBarColorUnfocused );
+        //_pTitleBox->color( _titleBarColorUnfocused );
+        _pTitleBox->labelcolor( FL_WHITE );
 
         /////// SystemBox
         _pSystemBox = new Fl_Group( _pTitleBar->x( ) + _pTitleBar->w( ) - sysBoxW, y,
                 sysBoxW, titleBarH );
-        _pSystemBox->user_data( (void*)"systemBox" ); //for debugging purposes
 
         /////// SystemButtons
         createSystemButtons( _pSystemBox->x( ), y + 2, sysBtnSideLen );
@@ -161,8 +162,17 @@ namespace flx {
 
         _pTitleBar->end( );
         _pTitleBar->resizable( _pTitleBox );
+        
+        setTitleBarColorFocused( false );
     }
     
+    void Flx_MdiChild::setTitleBarColors( Fl_Color focused, Fl_Color unfocused ) {
+        bool isFocused = _pTitleBar->color() == _titleBarColorFocused ? true : false;
+        _titleBarColorUnfocused = unfocused;
+        _titleBarColorFocused = focused;
+        setTitleBarColorFocused( isFocused );
+        redraw();
+    }
 
     void Flx_MdiChild::createSystemButtons( int x, int y, int sideLen ) {
         _pMinBtn = new Flx_SystemButton( x, y, sideLen, sideLen, SYSTEMBUTTON_MINI, 
@@ -185,12 +195,20 @@ namespace flx {
     
     void Flx_MdiChild::setTitleBarColorFocused( bool focused ) {
         Fl_Color colr = focused ? _titleBarColorFocused : _titleBarColorUnfocused;
-  
+        Fl_Color lblcolor = focused ? FL_WHITE : FL_GRAY;
         _pTitleBar->color( colr );
+        
         _pTitleBox->color( colr );
+        _pTitleBox->labelcolor( lblcolor );
+        
         _pMinBtn->color( colr );
+        _pMinBtn->labelcolor( lblcolor );
+        
         _pMaxBtn->color( colr );
+        _pMaxBtn->labelcolor( lblcolor );
+        
         _pCloseBtn->color( colr );
+        _pCloseBtn->labelcolor( lblcolor );
     }
     
     void Flx_MdiChild::draw( ) {
@@ -262,8 +280,7 @@ namespace flx {
                         pParent->redraw( );
                         this->take_focus();
                     }
-                }
-                
+                }                
 
                 _x = Fl::event_x( );
                 _y = Fl::event_y( );
@@ -276,6 +293,11 @@ namespace flx {
                      }
                 }
                 
+                if( Fl::event_clicks() != 0 ) {
+                    SystemBoxAction action;
+                    action.actionButton = SYSTEMBUTTON_MAXI;
+                    signalSystemButtonClick.send( *this, action );
+                }
                 return 1;
                 
             }
@@ -372,6 +394,8 @@ namespace flx {
 
         _x = Fl::event_x( );
         _y = Fl::event_y( );
+        
+        rememberSize();
     }
 
     void Flx_MdiChild::resizeHorz( int dx ) {
@@ -446,14 +470,31 @@ namespace flx {
         return false;
     }
 
+    void Flx_MdiChild::restoreSize() {
+        resize( _recentSize.X, _recentSize.Y, _recentSize.W, _recentSize.H );
+    }
+    
+    void Flx_MdiChild::resize( int x, int y, int w, int h ) {
+        Fl_Group::resize( x, y, w, h );
+        //rememberSize();
+    }
 
+    void Flx_MdiChild::rememberSize() {
+        _recentSize.X = this->x();
+        _recentSize.Y = this->y();
+        _recentSize.W = this->w();
+        _recentSize.H = this->h();
+    }
+    
+    
     ///////////////////////////////////////////////////////////
     ////////////  Flx_MdiContainer  ///////////////////////////////
     ///////////////////////////////////////////////////////////
 
     Flx_MdiContainer::Flx_MdiContainer( int x, int y, int w, int h )
     : Fl_Group( x, y, w, h ) {
-
+        box( FL_FLAT_BOX );
+        color( fl_rgb_color( 234, 234, 234 ) );
     }
     
     void Flx_MdiContainer::end() {
@@ -525,12 +566,16 @@ namespace flx {
         for( int r = 0; r < rows; r++ ) {
             for( int c = 0; c < cols; c++ ) {
                 int idx = r * cols + c;
-                child( idx )->resize( X, Y, W, H );
+                ((Flx_MdiChild*)child( idx ))->resize( X, Y, W, H );
                 X += W;
             }
             X = x();
             Y += H;
         }
+    }
+    
+    void Flx_MdiContainer::setFocusTo( Flx_MdiChild &child ) {
+        child.handle( FL_PUSH );
     }
     
     void Flx_MdiContainer::draw( ) {
@@ -551,9 +596,21 @@ namespace flx {
                 remove( child );
                 parent()->redraw();
             } 
-        } else if( action.actionButton == SYSTEMBUTTON_MAXI ) {           
-            ((Fl_Group&)child).resize( x(), y(), w(), h() );
+        } else if( action.actionButton == SYSTEMBUTTON_MAXI ) { 
+            //wenn nicht maximiert, maximieren;
+            //wenn maximiert, auf _recentSize zurücksetzen
+            if( child.x() == x() && child.y() == y() && child.w() == w() && child.h() == h() ) {
+                //maximized, restore:
+                child.restoreSize();
+            } else {
+                ((Fl_Group&)child).resize( x(), y(), w(), h() );
+            }
             parent()->redraw();
+        } else {
+            //SYSTEMBUTTON_MINI
+            //Child unsichtbar machen
+            child.hide();
+            //wie wird das child wieder sichtbar? ==> über das Fenster-Menü
         }
     }
     

@@ -102,7 +102,6 @@ namespace flx {
     private:
         SystemBoxButtonType _type;
     };
-
     
     /**
      * Flx_MdiChild repräsentiert ein Dokument im Flx_MdiContainer.
@@ -118,6 +117,9 @@ namespace flx {
         void add( Fl_Widget & );
         void add( Fl_Widget * );
         int handle( int evt );
+        void setTitleBarColors( Fl_Color focused, Fl_Color unfocused );
+        void restoreSize();
+        void resize( int x, int y, int w, int h );
     protected:
         void draw();
         
@@ -125,14 +127,17 @@ namespace flx {
         void onSystemButtonClick( Flx_SystemButton &btn, SystemBoxAction & action );
         void drag();
         MousePosition checkResizeCursor();
+        
         void resize();
         void resizeHorz( int dx );
         void resizeVert( int dy );
         bool canResizeVert( int dy ) const;
         bool canResizeHorz( int dx ) const;
+        void rememberSize();
         void createTitleBar( int x, int y, int w, const char *pLbl = 0 );
         void createSystemButtons( int x, int y, int sideLen );
         void setTitleBarColorFocused( bool focused );
+        
     private:
         MousePosition _mousePos;
         bool _dragging;
@@ -140,6 +145,7 @@ namespace flx {
         Fl_Group *_pTitleBar;
         Fl_Color _titleBarColorFocused;
         Fl_Color _titleBarColorUnfocused;
+        Rectangle _recentSize; //Größe vor Maxi- oder Minimize
         Fl_Box *_pImageBox;
         Fl_Box *_pTitleBox;
         Fl_Group *_pSystemBox;
@@ -179,6 +185,11 @@ namespace flx {
          * Container - bei gegebener Größe -  hineinpassen.
          */
         void arrangeChildren();
+        /**
+         * Setzt den Focus auf child
+         * @param child
+         */
+        void setFocusTo( Flx_MdiChild &child );
     private:
         void onChildSystemButtonClick( Flx_MdiChild &child, SystemBoxAction &action );
         void connectToChildSignals( Flx_MdiChild &child );
