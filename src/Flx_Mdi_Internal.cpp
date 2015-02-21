@@ -39,6 +39,14 @@ void printBounds( Fl_Widget *p ) {
 }
 
 namespace flx {
+    
+    ///////////////////////////////////////////////////////////
+    ////////////  MdiChildException  ///////////////////////////////
+    ///////////////////////////////////////////////////////////
+    MdiChildException::MdiChildException(const char* pMsg) {
+        _msg.add( pMsg );
+    }
+    
 
     ///////////////////////////////////////////////////////////
     ////////////  Flx_SystemButton  ///////////////////////////////
@@ -96,6 +104,7 @@ namespace flx {
         _pClientArea->align( FL_ALIGN_CENTER | FL_ALIGN_INSIDE );
         _pClientArea->color( FL_WHITE );
         _pClientArea->end();
+        
         end( );
         
         resizable( _pClientArea );
@@ -269,8 +278,8 @@ namespace flx {
                 if( pW != this ) {
                     Flx_MdiContainer *pParent = (Flx_MdiContainer*)parent();
                     if( pParent->children( ) > 1 ) {                    
-                        pParent->remove( this );
-                        pParent->add( this );                    
+                        pParent->removeMdiChild( *this, false );
+                        pParent->addMdiChild( *this, false );                    
                         pParent->redraw( );
                     }
                 }    
@@ -529,7 +538,6 @@ namespace flx {
 
     Flx_MdiContainer::Flx_MdiContainer( int x, int y, int w, int h )
     : Fl_Group( x, y, w, h ) 
-    , _pChildChoice( NULL )
     {
         box( FL_FLAT_BOX );
         color( fl_rgb_color( 234, 234, 234 ) );
@@ -549,17 +557,32 @@ namespace flx {
         }
     }
     
+    void Flx_MdiContainer::addMdiChild( Flx_MdiChild &mdiChild, bool connectToSignals ) 
+    {
+        Fl_Group::add( mdiChild );
+        if( connectToSignals ) {
+            connectToChildSignals( mdiChild );
+        }
+    }
+    
     void Flx_MdiContainer::add( Fl_Widget &w ) {
-        Fl_Group::add( w );
-        //log( "Neues MdiChild hat index: %d", getWidgetIndex( w ) );
-        
-         if( typeid( w ).name() == typeid( Flx_MdiChild ).name() ) {
-             connectToChildSignals( (Flx_MdiChild&)w );
-         }
+        Flx_MdiChild *pMdiChild = dynamic_cast<Flx_MdiChild*>( &w );
+        if( !pMdiChild ) {
+            MdiChildException ex( "Widget to be added is not a Flx_MdiChild" );
+            throw( ex );
+        }
+        addMdiChild( *pMdiChild, true );
     }
     
     void Flx_MdiContainer::add( Fl_Widget *pW ) {
         add( *pW );
+    }
+    
+    void Flx_MdiContainer::removeMdiChild( Flx_MdiChild &mdiChild, 
+                                           bool disconnectFromSignals ) 
+    {
+        disconnectFromChildSignals( mdiChild );
+        Fl_Group::remove( mdiChild );
     }
     
     void Flx_MdiContainer::remove( Fl_Widget *pW ) {
@@ -567,10 +590,13 @@ namespace flx {
     }
     
     void Flx_MdiContainer::remove( Fl_Widget &w ) {
-        if( typeid( w ).name() == typeid( Flx_MdiChild ).name() ) {
-             disconnectFromChildSignals( (Flx_MdiChild&)w );
+        Flx_MdiChild *pMdiChild = dynamic_cast<Flx_MdiChild*>( &w );
+        if( !pMdiChild ) {
+            MdiChildException ex( "Widget to be removed is not a Flx_MdiChild. How could you add() it?" );
+            throw( ex );
         }
-        Fl_Group::remove( w );
+        
+        removeMdiChild( *pMdiChild, true );
     }
     
     void Flx_MdiContainer::remove( int i ) {
@@ -622,6 +648,20 @@ namespace flx {
 
     int Flx_MdiContainer::handle( int evt ) {
         int rc = Fl_Group::handle( evt );
+        switch( evt ) {
+            case FL_KEYDOWN:
+            {
+                int n = Fl::event_key();
+                if( Fl::event_state() == FL_CTRL && n == 111 /* 'o' */ )  {
+                    //öffne KontextMenü
+                    showOpenChildren();
+                }                
+                rc = 1;
+                break;
+            }
+            default:
+                break;
+        }
         return rc;
     }
     
@@ -659,6 +699,29 @@ namespace flx {
     void Flx_MdiContainer::disconnectFromChildSignals( Flx_MdiChild &child ) {
         child.signalSystemButtonClick.
                 disconnect<Flx_MdiContainer, &Flx_MdiContainer::onChildSystemButtonClick>( this );
+    }
+
+    void Flx_MdiContainer::showOpenChildren() {
+        //get active child:
+        Flx_MdiChild *pChild = (Flx_MdiChild*)child( children() - 1 );
+        
+        Fl_Menu_Button menu( 1, 1, 1, 1 );
+        menu.box( FL_FLAT_BOX );
+        menu.down_box( FL_FLAT_BOX );
+        menu.color( FL_LIGHT1 );
+        
+        for( int i = children()-1; i >= 0 ; i-- ) {
+            menu.add( child( i )->label(), 0, NULL, child( i ) );
+        }
+        
+        int X = ( pChild->x() + pChild->w() ) / 2 - ( menu.w() / 2 );
+        int Y = ( pChild->y() + pChild->h() ) / 2 - menu.h();
+        
+        menu.position( X, Y );
+        const Fl_Menu_Item *pItem = menu.popup();
+        if( pItem ) {
+            ((Flx_MdiChild*)pItem->user_data())->handle( FL_PUSH );
+        }
     }
 
 } //ns flx

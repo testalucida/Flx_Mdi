@@ -16,6 +16,7 @@
 
 #include <vector>
 #include <memory>
+#include <exception>
 
 //forward declarations
 class Fl_Box;
@@ -29,10 +30,17 @@ struct Rectangle {
 
 namespace flx {
     
+    class MdiChildException : public std::exception {
+    public:
+        MdiChildException( const char *pMsg );
+        const char *what() { return _msg.get(); }
+    private:
+        my::CharBuffer _msg;
+    };
+    
     /* Implementierungsbeispiel für Flx_MdiContainer und Flx_MdiChild
      * 
      * 
-     
     int main(int argc, char **argv) {
     
         Fl_Double_Window win( 400, 50, 800, 800, "Multi Document Application" );
@@ -64,13 +72,8 @@ namespace flx {
         mdiContainer.arrangeChildren();
 
         return Fl::run();
-    }
-     * 
-     * 
-     *
+    }     
      */
-    
-    
     
     
     class Flx_MdiChild;
@@ -158,6 +161,7 @@ namespace flx {
         my::Signal<Flx_MdiChild, SystemBoxAction> signalSystemButtonClick;
     public:
         Flx_MdiChild( int x, int y, int w, int h, const char *pLbl = 0 );
+        virtual ~Flx_MdiChild() {};
         const Rectangle getClientAreaSize() const;
         void add( Fl_Widget & );
         void add( Fl_Widget * );
@@ -212,8 +216,10 @@ namespace flx {
         Flx_MdiContainer( int x, int y, int w, int h );
         void draw();
         int handle( int evt );
+        void addMdiChild( Flx_MdiChild &mdiChild, bool connectToSignals = true );
         void add( Fl_Widget & );
         void add( Fl_Widget * );
+        void removeMdiChild( Flx_MdiChild &mdiChild, bool disconnectFromSignals = true );
         void remove( Fl_Widget & );
         void remove( int i );
         void remove( Fl_Widget * );
@@ -241,8 +247,7 @@ namespace flx {
         void onChildSystemButtonClick( Flx_MdiChild &child, SystemBoxAction &action );
         void connectToChildSignals( Flx_MdiChild &child );
         void disconnectFromChildSignals( Flx_MdiChild &child );
-    private:
-        Fl_Menu_Button *_pChildChoice;
+        void showOpenChildren();
     };
 }
 
