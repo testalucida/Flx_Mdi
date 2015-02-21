@@ -6,45 +6,199 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Multiline_Input.H>
+#include <FL/Fl_Tile.H>
+
 #include <flx/Flx_ToolBar.h>
+#include <flx/Flx_Table.h>
+
+#include <my/Util.h>
 
 #include <Flx_Mdi_Internal.h>
+#include <FL/Fl_Menu_Bar.H>
+
+#include <typeinfo>
 
 using namespace flx;
+using namespace my;
+
+///////////////////////////////////////////////////////////
+////////////////      QueryEditor     /////////////////////
+///////////////////////////////////////////////////////////
+class QueryEditor : public Fl_Multiline_Input {
+public:
+    QueryEditor( int x, int y, int w, int h );
+};
+
+/////////////////////
+
+QueryEditor::QueryEditor( int x, int y, int w, int h ) 
+: Fl_Multiline_Input( x, y, w, h )
+{
+    box( FL_FLAT_BOX );
+}
+
+///////////////////////////////////////////////////////////
+////////////////      ResultTable     /////////////////////
+///////////////////////////////////////////////////////////
+class ResultTable : public flx::Flx_Table {
+public:
+    ResultTable( int x, int y, int w, int h );
+};
+
+//////////////////////
+
+ResultTable::ResultTable( int x, int y, int w, int h ) 
+: flx::Flx_Table( x, y, w, h )
+{
+    box( FL_FLAT_BOX );
+    setNiceDefaults();
+}
+
+
+///////////////////////////////////////////////////////////
+////////////////   QueryRunnerView    /////////////////////
+///////////////////////////////////////////////////////////
+class QueryRunnerView : public Fl_Group {
+public:
+    QueryRunnerView( int x, int y, int w, int h );
+private:
+    Flx_ToolBar *_pToolBar;
+    Fl_Tile *_pTile;
+    Fl_Group *_pBottomGroup;
+    QueryEditor *_pEdi;
+    ResultTable *_pResultTable;
+};
+
+//////////////////////
+
+QueryRunnerView::QueryRunnerView(int x, int y, int w, int h)
+: Fl_Group( x, y, w, h )
+{
+    int tbh = 25;
+    int bgh = 25;
+    
+    _pToolBar = new Flx_ToolBar( x, y, w, tbh );
+ 
+    _pTile = new Fl_Tile( x, y + tbh, w, h - tbh - bgh, "Tile" );
+    
+    _pEdi = new QueryEditor( x, _pTile->y(), _pTile->w(), _pTile->h()/2 );
+    _pResultTable = new ResultTable( x, _pTile->y() + _pEdi->h(), w, 
+                                     _pTile->h() - _pEdi->h() );
+    
+    _pTile->end();
+    
+    _pBottomGroup = new Fl_Group( x, y + h - bgh, w, bgh );
+    _pBottomGroup->box( FL_FLAT_BOX );
+    _pBottomGroup->color( FL_LIGHT2 );
+    _pBottomGroup->end();
+    
+    end();
+    
+    resizable( _pTile );
+}
+
+///////////////////////////////////////////////////////////
+////////////////   QueryRunnerGroup   /////////////////////
+///////////////////////////////////////////////////////////
+
+class QueryRunnerGroup : public Flx_MdiChild {
+public:
+    QueryRunnerGroup( int x, int y, int w, int h, const char *pLbl = 0);
+private:
+    QueryRunnerView *_pQueryRunnerView;
+};
+
+///////////////////////
+
+QueryRunnerGroup::QueryRunnerGroup(int x, int y, int w, int h, const char* pLbl) 
+: Flx_MdiChild( x, y, w, h, pLbl )
+{
+    Rectangle rect = getClientAreaSize();
+    _pQueryRunnerView = new QueryRunnerView( rect.X, rect.Y, rect.W, rect.H );
+    add( _pQueryRunnerView );
+}
+
+////////////////////////////////////////////////////////////
+//////////////////////  main  //////////////////////////////
+////////////////////////////////////////////////////////////
+
 
 int main(int argc, char **argv) {
     
     Fl_Double_Window win( 400, 50, 800, 800, "Multi Document Application" );
     Flx_ToolBar toolbar( 0, 0, 800, 40 );
     toolbar.color( fl_rgb_color( 200, 200, 200 ) );
+    
     Flx_MdiContainer mdiContainer( 0, 40, 800, 600 );
-    mdiContainer.box( FL_FLAT_BOX );
-    //mdiContainer.color( FL_BLUE );
+    
+    QueryRunnerGroup grp1( 50, 50, 300, 300, "<unbenannt 1>" );
+
+    mdiContainer.end();
+
+    win.end();
+    win.resizable( mdiContainer );
+
+    win.show(argc, argv);
+    
+    //mdiContainer.arrangeChildren();
+   
+    return Fl::run();
+}
+
+class MyInput : public Fl_Multiline_Input {
+public:
+    MyInput( int x, int y, int w, int h, const char *pLbl ) 
+    : Fl_Multiline_Input( x, y, w, h, pLbl )
+    {
+        
+    }
+    
+    int handle( int evt ) {
+        int rc = Fl_Multiline_Input::handle( evt );
+        switch( evt ) {
+            case FL_PUSH:
+                Util::log( "Multiline::handle: PUSH" );
+                break;
+            default:
+                break;
+        }
+        
+        return rc;
+    }
+    
+};
+
+int main0(int argc, char **argv) {
+    
+    Fl_Double_Window win( 400, 50, 800, 800, "Multi Document Application" );
+    Flx_ToolBar toolbar( 0, 0, 800, 40 );
+    toolbar.color( fl_rgb_color( 200, 200, 200 ) );
+    Flx_MdiContainer mdiContainer( 0, 40, 800, 600 );
     
         Flx_MdiChild child1( 50, 50, 250, 250, "Child 1" );
         Rectangle rect = child1.getClientAreaSize();
-        Fl_Multiline_Input inp1( rect.X, rect.Y, rect.W, rect.H, "inp1" );
+        MyInput inp1( rect.X, rect.Y, rect.W, rect.H, "inp1" );
         inp1.align( FL_ALIGN_CENTER | FL_ALIGN_INSIDE );
         inp1.box( FL_FLAT_BOX );
         child1.add( inp1 );
 
         Flx_MdiChild child2( 100, 100, 250, 250, "Child 2" );
         rect = child2.getClientAreaSize();
-        Fl_Multiline_Input inp2( rect.X, rect.Y, rect.W, rect.H, "inp2" );
+        MyInput inp2( rect.X, rect.Y, rect.W, rect.H, "inp2" );
         inp2.align( FL_ALIGN_CENTER | FL_ALIGN_INSIDE );
         inp2.box( FL_FLAT_BOX );
         child2.add( inp2 );
         
         Flx_MdiChild child3( 130, 130, 250, 250, "Child 3" );
         rect = child3.getClientAreaSize();
-        Fl_Multiline_Input inp3( rect.X, rect.Y, rect.W, rect.H, "inp3" );
+        MyInput inp3( rect.X, rect.Y, rect.W, rect.H, "inp3" );
         inp3.align( FL_ALIGN_CENTER | FL_ALIGN_INSIDE );
         inp3.box( FL_FLAT_BOX );
         child3.add( inp3 );
         
         Flx_MdiChild child4( 180, 180, 250, 250, "Child 4" );
         rect = child4.getClientAreaSize();
-        Fl_Multiline_Input inp4( rect.X, rect.Y, rect.W, rect.H, "inp4" );
+        MyInput inp4( rect.X, rect.Y, rect.W, rect.H, "inp4" );
         inp4.align( FL_ALIGN_CENTER | FL_ALIGN_INSIDE );
         inp4.box( FL_FLAT_BOX );
         child4.add( inp4 );

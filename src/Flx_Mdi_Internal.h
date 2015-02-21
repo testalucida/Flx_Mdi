@@ -28,6 +28,50 @@ struct Rectangle {
 
 namespace flx {
     
+    /* Implementierungsbeispiel für Flx_MdiContainer und Flx_MdiChild
+     * 
+     * 
+     
+    int main(int argc, char **argv) {
+    
+        Fl_Double_Window win( 400, 50, 800, 800, "Multi Document Application" );
+        Flx_ToolBar toolbar( 0, 0, 800, 40 );
+        toolbar.color( fl_rgb_color( 200, 200, 200 ) );
+        Flx_MdiContainer mdiContainer( 0, 40, 800, 600 );
+
+            Flx_MdiChild child1( 50, 50, 250, 250, "Child 1" );
+            Rectangle rect = child1.getClientAreaSize();
+            Fl_Multiline_Input inp1( rect.X, rect.Y, rect.W, rect.H, "inp1" );
+            inp1.align( FL_ALIGN_CENTER | FL_ALIGN_INSIDE );
+            inp1.box( FL_FLAT_BOX );
+            child1.add( inp1 );
+
+            Flx_MdiChild child2( 100, 100, 250, 250, "Child 2" );
+            rect = child2.getClientAreaSize();
+            Fl_Multiline_Input inp2( rect.X, rect.Y, rect.W, rect.H, "inp2" );
+            inp2.align( FL_ALIGN_CENTER | FL_ALIGN_INSIDE );
+            inp2.box( FL_FLAT_BOX );
+            child2.add( inp2 );
+
+        mdiContainer.end();
+
+        win.end();
+        win.resizable( mdiContainer );
+
+        win.show(argc, argv);
+
+        mdiContainer.arrangeChildren();
+
+        return Fl::run();
+    }
+     * 
+     * 
+     *
+     */
+    
+    
+    
+    
     class Flx_MdiChild;
     typedef std::shared_ptr< std::vector<Flx_MdiChild*> > MdiChildListPtr; 
     
@@ -126,8 +170,8 @@ namespace flx {
     private:
         void onSystemButtonClick( Flx_SystemButton &btn, SystemBoxAction & action );
         void drag();
-        MousePosition checkResizeCursor();
-        
+        MousePosition getMousePosition() const;
+        void setCursor( MousePosition pos );
         void resize();
         void resizeHorz( int dx );
         void resizeVert( int dy );
@@ -145,6 +189,7 @@ namespace flx {
         Fl_Group *_pTitleBar;
         Fl_Color _titleBarColorFocused;
         Fl_Color _titleBarColorUnfocused;
+        Fl_Cursor _currentCursor;
         Rectangle _recentSize; //Größe vor Maxi- oder Minimize
         Fl_Box *_pImageBox;
         Fl_Box *_pTitleBox;

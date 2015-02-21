@@ -9,6 +9,9 @@
 #include "../images/mdi.xpm"
 #include <flx/flx_signalparms.h>
 
+#include <my/Util.h>
+#include <my/CharBuffer.h>
+
 #include <FL/Fl.H>
 #include <FL/Fl_Widget.H>
 #include <FL/Fl_Box.H>
@@ -16,53 +19,22 @@
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Pixmap.H>
 
-#include <stdarg.h>
+
 #include <cmath>
 
 using namespace std;
+using namespace my;
 
-void log( const char* fmt, ... ) {
-#if DEBUG
-    va_list list;
-    va_start( list, fmt );
-    
-    for( const char *p = fmt; *p; p++ ) {
-        if( *p != '%') {
-            fprintf( stderr, "%c", *p );
-            continue;
-        }
-        
-        int i;
-        double d;
-        char *pStr;
-        
-        switch( *++p ) {
-            case 'd':
-                i = va_arg( list, int );
-                fprintf( stderr, "%d", i );
-                break;
-            case 'f':
-                d = va_arg( list, double );
-                fprintf( stderr, "%f", d );
-                break;
-            case 's':
-                pStr = va_arg( list, char* );
-                if( pStr ) {
-                    fprintf( stderr, "%s", pStr );
-                } 
-                break;
-            default:
-                putchar( *p );
-                break;
-        }
-    }
-    
-    va_end( list );
-    
-    putchar( '\n' );
-#endif
+void log( const char *pMsg, Fl_Widget *p ) {
+    CharBuffer msg( pMsg );
+    msg.add( "%s" ).add( typeid( p ).name() );    
+    Util::log( msg.get() );
 }
 
+void printBounds( Fl_Widget *p ) {
+    Util::log( "Widget %s: x=%d, y=%d, w=%d, h=%d",
+              p->label(), p->x(), p->y(), p->w(), p->h() );
+}
 
 namespace flx {
 
@@ -103,26 +75,35 @@ namespace flx {
     ///////////////////////////////////////////////////////////
 
     Flx_MdiChild::Flx_MdiChild( int x, int y, int w, int h, const char *pLbl )
-    : Fl_Group( x, y, w, h )
+    : Fl_Group( x, y, w, h, pLbl )
     , _titleBarColorFocused ( fl_rgb_color( 26, 26, 26 ) )
     , _titleBarColorUnfocused( fl_rgb_color( 160, 160, 160 ) )
+    , _currentCursor( FL_CURSOR_DEFAULT )
     {
         box( FL_FLAT_BOX );
-      
+        labelsize( 0 );
         int border = 3;
 
         createTitleBar( x + border, y + 2, w - 2*border, pLbl );
         
-        _pClientArea = new Fl_Group( x+border, y + _pTitleBar->h(), 
-                                     w-2*border, h - _pTitleBar->h() - border, 
-                                    "" );
+        _pClientArea = new Fl_Group( x+border, _pTitleBar->y() + _pTitleBar->h(), 
+                                     w-2*border, h - _pTitleBar->h() - border - 2, 
+                                    "ClientArea" );
+        _pClientArea->labelsize( 0 );
         _pClientArea->box( FL_FLAT_BOX );
         _pClientArea->align( FL_ALIGN_CENTER | FL_ALIGN_INSIDE );
         _pClientArea->color( FL_WHITE );
+        _pClientArea->end();
         end( );
+        
         resizable( _pClientArea );
         
         rememberSize();
+        
+        printBounds( this );
+        printBounds( _pTitleBar );
+        printBounds( _pClientArea );
+ 
     }
 
     void Flx_MdiChild::createTitleBar( int x, int y, int w, const char *pLbl ) {
@@ -132,10 +113,9 @@ namespace flx {
         int imgBoxSideLen = 28;
         int titleBoxW = w - sysBoxW - imgBoxSideLen;
 
-        _pTitleBar = new Fl_Group( x, y, w, titleBarH );
-        _pTitleBar->user_data( (void*)"titleBar" ); //for debugging purposes
+        _pTitleBar = new Fl_Group( x, y, w, titleBarH, "TitleBar" );
         _pTitleBar->box( FL_FLAT_BOX );
-        //_pTitleBar->color( _titleBarColorUnfocused );
+        _pTitleBar->labelsize( 0 );
 
         //////// ImageBox
         _pImageBox = new Fl_Box( x, y, imgBoxSideLen, imgBoxSideLen );
@@ -148,12 +128,11 @@ namespace flx {
                 titleBoxW, titleBarH, pLbl );
         _pTitleBox->align( FL_ALIGN_CENTER | FL_ALIGN_INSIDE );
         _pTitleBox->box( FL_FLAT_BOX );
-        //_pTitleBox->color( _titleBarColorUnfocused );
-        _pTitleBox->labelcolor( FL_WHITE );
 
         /////// SystemBox
         _pSystemBox = new Fl_Group( _pTitleBar->x( ) + _pTitleBar->w( ) - sysBoxW, y,
-                sysBoxW, titleBarH );
+                                    sysBoxW, titleBarH, "SystemBox" );
+        _pSystemBox->labelsize( 0 );
 
         /////// SystemButtons
         createSystemButtons( _pSystemBox->x( ), y + 2, sysBtnSideLen );
@@ -251,53 +230,65 @@ namespace flx {
 
         switch( evt ) {
             case FL_MOVE:
-                _mousePos = checkResizeCursor( );
+            {
+                _mousePos = getMousePosition();
+                if( _mousePos == POS_ANY ) {
+                    if( _currentCursor != cursors[POS_ANY] )
+                    {
+                        setCursor( POS_ANY );
+                    }
+                } else {
+                    setCursor( _mousePos );
+                }
                 break;
+            }
             case FL_LEAVE:
-                fl_cursor( FL_CURSOR_DEFAULT );
+                setCursor( POS_ANY );
                 break;
             case FL_FOCUS:
-                //log( "FOCUS: %s", _pTitleBox->label() );
                 setTitleBarColorFocused( true );
                 redraw();
                 break;
             case FL_UNFOCUS:
-                //log( "UNFOCUS: %s", _pTitleBox->label() );
                 setTitleBarColorFocused( false );
                 redraw();
                 break;
             case FL_PUSH:
-            {                  
+            {                                  
                 //if /this/ == Fl_MdiChild (not one of its children)
                 //then make it the last in the Fl_Group::array(). Thus,
                 //it will be drawn /last/, i.e. "over" the other
-                //Flx_MdiChild instances:
-                if( typeid( *this ).name() == typeid( Flx_MdiChild ).name() ) {
+                //Flx_MdiChild instances:                
+                Fl_Widget *pW = parent()->child( parent()->children() - 1 );               
+                if( pW != this ) {
                     Flx_MdiContainer *pParent = (Flx_MdiContainer*)parent();
                     if( pParent->children( ) > 1 ) {                    
                         pParent->remove( this );
                         pParent->add( this );                    
                         pParent->redraw( );
-                        this->take_focus();
                     }
-                }                
+                }    
+                if( Fl::focus() != this ) {
+                    this->take_focus();
+                }
 
                 _x = Fl::event_x( );
                 _y = Fl::event_y( );
                 
                 if( _mousePos == POS_ANY ) {
-                     Fl_Widget *pW = Fl::belowmouse();  
-                     if( pW == _pTitleBox ) {
-                         _dragging = true;
-                         fl_cursor( FL_CURSOR_MOVE );                         
-                     }
-                }
+                    Fl_Widget *pW = Fl::belowmouse();  
+                    if( pW == _pTitleBox ) {
+                        _dragging = true;
+                        fl_cursor( FL_CURSOR_MOVE );
+                        _currentCursor = FL_CURSOR_MOVE;
+                        if( Fl::event_clicks() != 0 ) {
+                            SystemBoxAction action;
+                            action.actionButton = SYSTEMBUTTON_MAXI;
+                            signalSystemButtonClick.send( *this, action );
+                        }                         
+                    }
+                }                
                 
-                if( Fl::event_clicks() != 0 ) {
-                    SystemBoxAction action;
-                    action.actionButton = SYSTEMBUTTON_MAXI;
-                    signalSystemButtonClick.send( *this, action );
-                }
                 return 1;
                 
             }
@@ -320,7 +311,32 @@ namespace flx {
         return rc;
     }
 
-    MousePosition Flx_MdiChild::checkResizeCursor( ) {
+//    MousePosition Flx_MdiChild::checkResizeCursor( ) {
+//        int x = Fl::event_x( ), y = Fl::event_y( );
+//        int leftX = this->x( );
+//        int rightX = leftX + this->w( );
+//        int topY = this->y( );
+//        int botY = topY + this->h( );
+//
+//        unsigned int pos = POS_ANY;
+//
+//        if( x > ( rightX - 6 ) ) {
+//            pos = POS_E;
+//        } else if( x < ( leftX + 6 ) ) {
+//            pos = POS_W;
+//        }
+//        if( y > ( botY - 6 ) ) {
+//            pos += POS_S;
+//        } else if( y < ( topY + 6 ) ) {
+//            pos += POS_N;
+//        }
+//
+//        fl_cursor( cursors[pos] );
+//
+//        return (MousePosition) pos;
+//    }
+    
+    MousePosition Flx_MdiChild::getMousePosition() const {
         int x = Fl::event_x( ), y = Fl::event_y( );
         int leftX = this->x( );
         int rightX = leftX + this->w( );
@@ -340,11 +356,15 @@ namespace flx {
             pos += POS_N;
         }
 
-        fl_cursor( cursors[pos] );
-
         return (MousePosition) pos;
     }
 
+    void Flx_MdiChild::setCursor( MousePosition pos ) {
+        Fl_Cursor cursor = cursors[pos];
+        fl_cursor( cursor );
+        _currentCursor = cursor;
+    }
+    
     void Flx_MdiChild::onSystemButtonClick( Flx_SystemButton &btn, SystemBoxAction & action ) {
         signalSystemButtonClick.send( *this, action );
     }
@@ -512,9 +532,9 @@ namespace flx {
         
         for( int i = 0, imax = children(); i < imax; i++ ) {
             Fl_Widget *pW = child( i ); 
-            if( typeid( *pW ).name() == typeid( Flx_MdiChild ).name() ) {
+            //if( typeid( *pW ).name() == typeid( Flx_MdiChild ).name() ) {
                 connectToChildSignals( (Flx_MdiChild&)*pW );
-            }
+            //}
         }
         
         if( children() > 0 ) {
