@@ -21,6 +21,7 @@
 class Fl_Box;
 class Fl_Button;
 class Fl_Pixmap;
+class Fl_Menu_Button;
 
 struct Rectangle {
     int X, Y, W, H;
@@ -161,6 +162,7 @@ namespace flx {
         void add( Fl_Widget & );
         void add( Fl_Widget * );
         int handle( int evt );
+        void setTitle( const char *pTitle );
         void setTitleBarColors( Fl_Color focused, Fl_Color unfocused );
         void restoreSize();
         void resize( int x, int y, int w, int h );
@@ -239,6 +241,8 @@ namespace flx {
         void onChildSystemButtonClick( Flx_MdiChild &child, SystemBoxAction &action );
         void connectToChildSignals( Flx_MdiChild &child );
         void disconnectFromChildSignals( Flx_MdiChild &child );
+    private:
+        Fl_Menu_Button *_pChildChoice;
     };
 }
 

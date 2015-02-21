@@ -79,7 +79,7 @@ QueryRunnerView::QueryRunnerView(int x, int y, int w, int h)
     
     _pToolBar = new Flx_ToolBar( x, y, w, tbh );
  
-    _pTile = new Fl_Tile( x, y + tbh, w, h - tbh - bgh, "Tile" );
+    _pTile = new Fl_Tile( x, y + tbh, w, h - tbh - bgh );
     
     _pEdi = new QueryEditor( x, _pTile->y(), _pTile->w(), _pTile->h()/2 );
     _pResultTable = new ResultTable( x, _pTile->y() + _pEdi->h(), w, 
@@ -132,6 +132,8 @@ int main(int argc, char **argv) {
     Flx_MdiContainer mdiContainer( 0, 40, 800, 600 );
     
     QueryRunnerGroup grp1( 50, 50, 300, 300, "<unbenannt 1>" );
+    
+    QueryRunnerGroup grp2( 150, 100, 300, 300, "<unbenannt 2>" );
 
     mdiContainer.end();
 

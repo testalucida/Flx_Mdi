@@ -18,6 +18,8 @@
 #include <FL/fl_draw.H>
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Pixmap.H>
+#include <FL/Fl_Menu_Button.H>
+#include <FL/Fl_Menu_Item.H>
 
 
 #include <cmath>
@@ -143,6 +145,10 @@ namespace flx {
         _pTitleBar->resizable( _pTitleBox );
         
         setTitleBarColorFocused( false );
+    }
+    
+    void Flx_MdiChild::setTitle( const char *pTitle ) {
+        _pTitleBox->copy_label( pTitle );
     }
     
     void Flx_MdiChild::setTitleBarColors( Fl_Color focused, Fl_Color unfocused ) {
@@ -522,7 +528,9 @@ namespace flx {
     ///////////////////////////////////////////////////////////
 
     Flx_MdiContainer::Flx_MdiContainer( int x, int y, int w, int h )
-    : Fl_Group( x, y, w, h ) {
+    : Fl_Group( x, y, w, h ) 
+    , _pChildChoice( NULL )
+    {
         box( FL_FLAT_BOX );
         color( fl_rgb_color( 234, 234, 234 ) );
     }
@@ -532,9 +540,8 @@ namespace flx {
         
         for( int i = 0, imax = children(); i < imax; i++ ) {
             Fl_Widget *pW = child( i ); 
-            //if( typeid( *pW ).name() == typeid( Flx_MdiChild ).name() ) {
-                connectToChildSignals( (Flx_MdiChild&)*pW );
-            //}
+            
+            connectToChildSignals( (Flx_MdiChild&)*pW );           
         }
         
         if( children() > 0 ) {
