@@ -8,9 +8,6 @@
 #include <FL/Fl_Multiline_Input.H>
 #include <FL/Fl_Tile.H>
 
-#include <flx/Flx_ToolBar.h>
-#include <flx/Flx_Table.h>
-
 #include <my/Util.h>
 
 #include <Flx_Mdi_Internal.h>
@@ -37,23 +34,6 @@ QueryEditor::QueryEditor( int x, int y, int w, int h )
     box( FL_FLAT_BOX );
 }
 
-///////////////////////////////////////////////////////////
-////////////////      ResultTable     /////////////////////
-///////////////////////////////////////////////////////////
-class ResultTable : public flx::Flx_Table {
-public:
-    ResultTable( int x, int y, int w, int h );
-};
-
-//////////////////////
-
-ResultTable::ResultTable( int x, int y, int w, int h ) 
-: flx::Flx_Table( x, y, w, h )
-{
-    box( FL_FLAT_BOX );
-    setNiceDefaults();
-}
-
 
 ///////////////////////////////////////////////////////////
 ////////////////   QueryRunnerView    /////////////////////
@@ -62,11 +42,11 @@ class QueryRunnerView : public Fl_Group {
 public:
     QueryRunnerView( int x, int y, int w, int h );
 private:
-    Flx_ToolBar *_pToolBar;
+    Fl_Group *_pToolBar;
     Fl_Tile *_pTile;
     Fl_Group *_pBottomGroup;
     QueryEditor *_pEdi;
-    ResultTable *_pResultTable;
+    //ResultTable *_pResultTable;
 };
 
 //////////////////////
@@ -77,13 +57,14 @@ QueryRunnerView::QueryRunnerView(int x, int y, int w, int h)
     int tbh = 25;
     int bgh = 25;
     
-    _pToolBar = new Flx_ToolBar( x, y, w, tbh );
+    _pToolBar = new Fl_Group( x, y, w, tbh );
+    _pToolBar->end();
  
     _pTile = new Fl_Tile( x, y + tbh, w, h - tbh - bgh );
     
     _pEdi = new QueryEditor( x, _pTile->y(), _pTile->w(), _pTile->h()/2 );
-    _pResultTable = new ResultTable( x, _pTile->y() + _pEdi->h(), w, 
-                                     _pTile->h() - _pEdi->h() );
+//    _pResultTable = new ResultTable( x, _pTile->y() + _pEdi->h(), w, 
+//                                     _pTile->h() - _pEdi->h() );
     
     _pTile->end();
     
@@ -126,7 +107,8 @@ QueryRunnerGroup::QueryRunnerGroup(int x, int y, int w, int h, const char* pLbl)
 int main(int argc, char **argv) {
     
     Fl_Double_Window win( 400, 50, 800, 800, "Multi Document Application" );
-    Flx_ToolBar toolbar( 0, 0, 800, 40 );
+    Fl_Group toolbar( 0, 0, 800, 40 );
+    toolbar.end();
     toolbar.color( fl_rgb_color( 200, 200, 200 ) );
     
     Flx_MdiContainer mdiContainer( 0, 40, 800, 600 );
@@ -142,9 +124,12 @@ int main(int argc, char **argv) {
 
     win.show(argc, argv);
     
+//    grp2.take_focus();
+//    win.redraw();
     //mdiContainer.arrangeChildren();
-   
+    
     return Fl::run();
+   
 }
 
 class MyInput : public Fl_Multiline_Input {
@@ -173,7 +158,8 @@ public:
 int main0(int argc, char **argv) {
     
     Fl_Double_Window win( 400, 50, 800, 800, "Multi Document Application" );
-    Flx_ToolBar toolbar( 0, 0, 800, 40 );
+    Fl_Group toolbar( 0, 0, 800, 40 );
+    toolbar.end();
     toolbar.color( fl_rgb_color( 200, 200, 200 ) );
     Flx_MdiContainer mdiContainer( 0, 40, 800, 600 );
     

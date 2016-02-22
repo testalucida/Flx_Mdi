@@ -7,7 +7,6 @@
 
 #include "Flx_Mdi_Internal.h"
 #include "../images/mdi.xpm"
-#include <flx/flx_signalparms.h>
 
 #include <my/Util.h>
 #include <my/CharBuffer.h>
@@ -283,7 +282,8 @@ namespace flx {
                         pParent->redraw( );
                     }
                 }    
-                if( Fl::focus() != this ) {
+                Fl_Widget *pFocussed = Fl::focus();
+                if( /*pFocussed &&*/ pFocussed != this ) {                    
                     this->take_focus();
                 }
 
@@ -551,10 +551,7 @@ namespace flx {
             
             connectToChildSignals( (Flx_MdiChild&)*pW );           
         }
-        
-        if( children() > 0 ) {
-            child( children() - 1 )->handle( FL_PUSH );
-        }
+
     }
     
     void Flx_MdiContainer::addMdiChild( Flx_MdiChild &mdiChild, bool connectToSignals ) 
@@ -649,6 +646,11 @@ namespace flx {
     int Flx_MdiContainer::handle( int evt ) {
         int rc = Fl_Group::handle( evt );
         switch( evt ) {
+            case FL_SHOW:
+                if( children() > 0 ) {
+                    child( children() - 1 )->handle( FL_PUSH );
+                }
+                break;
             case FL_KEYDOWN:
             {
                 int n = Fl::event_key();
@@ -708,7 +710,8 @@ namespace flx {
         Fl_Menu_Button menu( 1, 1, 1, 1 );
         menu.box( FL_FLAT_BOX );
         menu.down_box( FL_FLAT_BOX );
-        menu.color( FL_LIGHT1 );
+        menu.color( FL_LIGHT2 );
+        menu.labelsize( 11 );
         
         for( int i = children()-1; i >= 0 ; i-- ) {
             menu.add( child( i )->label(), 0, NULL, child( i ) );

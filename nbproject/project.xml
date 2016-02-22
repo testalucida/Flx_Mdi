@@ -10,7 +10,6 @@
             <sourceEncoding>UTF-8</sourceEncoding>
             <make-dep-projects>
                 <make-dep-project>/home/max/cpp/My_1_5</make-dep-project>
-                <make-dep-project>/home/max/cpp/fltk/Flx_1</make-dep-project>
             </make-dep-projects>
             <sourceRootList>
                 <sourceRootElem>/home/max/cpp/fltk/Flx_Mdi/src</sourceRootElem>
